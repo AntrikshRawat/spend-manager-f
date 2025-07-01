@@ -1,0 +1,59 @@
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import SignUpPage from './pages/SignUpPage'
+import MyAccounts from './pages/MyAccounts'
+import NotFound from './pages/NotFound'
+import CreateAccount from './pages/CreateAccount'
+import About from './pages/About'
+import AccountDetails from './pages/AccountDetails'
+import RootLayout from './components/RootLayout'
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: "about",
+        element: <About />,
+      },
+      {
+        path: "my-accounts",
+        element: <MyAccounts />,
+      },
+      {
+        path: "my-accounts/:acId",
+        element: <AccountDetails />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "signup",
+        element: <SignUpPage />,
+      },
+      {
+        path: "create-account",
+        element: <CreateAccount />,
+      },
+      {
+        path: "*",
+        element: <NotFound />,
+      },
+    ],
+  },
+]);
+
+export default function App() {
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <RouterProvider router={router} />
+    </div>
+  )
+}
