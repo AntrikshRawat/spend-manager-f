@@ -51,7 +51,6 @@ export default function MyAccounts() {
     }
       setJoinedAccounts(updatedJoinedAccounts)
     } catch (error) {
-      console.log(error)
       console.error('Error fetching accounts:', error)
       alert('Failed to fetch accounts. Please try again.');
       // You might want to show an error message to the user here

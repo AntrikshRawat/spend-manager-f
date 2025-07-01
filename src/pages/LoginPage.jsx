@@ -18,7 +18,6 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setIsLoading(true)
-    console.log(formData)
 
     try {
       await axiosInstance.post(
