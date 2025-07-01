@@ -1,5 +1,5 @@
 {
-  "short_name": "SpendMgr",
+  "short_name": "SpendMNR",
   "name": "Money Spending Manager",
   "description": "A modern web app to manage shared expenses and group spending.",
   "icons": [
@@ -32,7 +32,7 @@
   ],
   "developer": {
     "name": "Antriksh Singh",
-    "url": "https://github.com/antriksh-singh",
-    "email": "antrikshsinghdev@gmail.com"
+    "url": "https://github.com/AntrikshRawat",
+    "email": "antrikshrawat2@gmail.com"
   }
 } 
