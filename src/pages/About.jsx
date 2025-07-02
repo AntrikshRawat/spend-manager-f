@@ -21,7 +21,7 @@ export default function About() {
               <FaGithub className="text-lg" />https://github.com/AntrikshRawat
             </a>
             <a
-              href="mailto:antrikshsinghdev@gmail.com"
+              href="mailto:antrikshrawat2@gmail.com"
               className="text-sm text-blue-600 hover:underline"
             >
               antrikshrawat2@gmail.com
