@@ -32,7 +32,8 @@ export default function CreateAccount() {
   const {user} = useUserStore();
   const navigate = useNavigate();
   const [activeInputIndex, setActiveInputIndex] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
   const [validUsernames, setValidUsernames] = useState(new Set())
 
   const filterList = (userlist, memberlist) => {
@@ -55,7 +56,7 @@ export default function CreateAccount() {
         return
       }
       try {
-        setLoading(true)
+        setSearchLoading(true)
         const {data} = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/auth/v1/filter`, {
           params: { search: query }
         })
@@ -67,7 +68,7 @@ export default function CreateAccount() {
         setFilteredUsers([])
         setValidUsernames(new Set())
       } finally {
-        setLoading(false)
+        setSearchLoading(false)
       }
     }, 300);
 
@@ -114,13 +115,13 @@ export default function CreateAccount() {
       return;
     }
     setError('');
-    setLoading(true);
+    setCreateLoading(true);
     try {
       const data = await createAccount(accountName,extractMemberIds(members));
       alert(data.message[0].msg ||data.message);
       navigate('/my-accounts');
     } finally {
-      setLoading(false);
+      setCreateLoading(false);
     }
   }
 
@@ -163,7 +164,7 @@ export default function CreateAccount() {
                   />
                   {activeInputIndex === idx && filteredUsers.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-48 overflow-y-auto">
-                      {loading ? (
+                      {searchLoading ? (
                         <div className="p-2 text-center text-gray-500">Loading...</div>
                       ) : (
                         filteredUsers.map((user, userIdx) => (
@@ -212,10 +213,10 @@ export default function CreateAccount() {
           </Link>
           <button
             type="submit"
-            disabled={loading}
-            className={`flex-1 p-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-lg flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={createLoading}
+            className={`flex-1 p-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-lg flex items-center justify-center ${createLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            {loading ? (
+            {createLoading ? (
               <>
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
