@@ -138,13 +138,13 @@ const AccountDetails = () => {
                   <HiPlus className="w-5 h-5" />
                   Add Transaction
                 </button>
-                <button
+{ account.accountHolder === user._id && <button
                   onClick={handleClearTransactions}
-                  disabled={account.totalTransaction === 0 ||account.accountHolder !== user._id || loading}
+                  disabled={account.totalTransaction === 0 ||loading}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition disabled:opacity-50 w-full sm:w-auto"
                 >
                   Clear Transactions
-                </button>
+                </button>}
               </div>
             </div>
             <TransactionsHistory accountId={account._id} refreshKey={transactionsRefreshKey} />
