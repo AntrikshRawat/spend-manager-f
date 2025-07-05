@@ -57,7 +57,7 @@ export default function HomePage() {
               <div className="text-gray-600">Transactions</div>
             </div>
             <div className="bg-gradient-to-br from-pink-50 to-red-50 rounded-xl p-6 text-center transform transition-all duration-300 hover:scale-105 shadow-lg">
-              <div className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-red-600 bg-clip-text text-transparent mb-2">$1M+</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-red-600 bg-clip-text text-transparent mb-2">₹1M+</div>
               <div className="text-gray-600">Total Expenses</div>
             </div>
             <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 text-center transform transition-all duration-300 hover:scale-105 shadow-lg">

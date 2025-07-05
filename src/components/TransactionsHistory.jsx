@@ -3,6 +3,29 @@ import axiosInstance from '../functions/axiosInstance';
 import { HiTrash } from 'react-icons/hi';
 import useUserStore from '../store/useUserStore';
 
+// Skeleton Loading Component for Transactions
+const TransactionSkeleton = () => (
+  <div className="py-3 px-2 flex flex-col sm:grid sm:grid-cols-6 gap-2 sm:items-center animate-pulse">
+    {/* Paid By skeleton */}
+    <div className="h-5 bg-gray-200 rounded w-20 mx-auto sm:mx-0"></div>
+    {/* Amount skeleton */}
+    <div className="h-5 bg-gray-200 rounded w-16 mx-auto sm:mx-0"></div>
+    {/* Where skeleton */}
+    <div className="h-5 bg-gray-200 rounded w-24 mx-auto sm:mx-0"></div>
+    {/* Date skeleton */}
+    <div className="h-4 bg-gray-200 rounded w-28 mx-auto sm:mx-0"></div>
+    {/* Member Expenses skeleton */}
+    <div className="space-y-1">
+      <div className="h-4 bg-gray-200 rounded w-16 mx-auto sm:mx-0"></div>
+      <div className="h-4 bg-gray-200 rounded w-20 mx-auto sm:mx-0"></div>
+    </div>
+    {/* Action button skeleton */}
+    <div className="flex justify-center sm:justify-start w-full mt-2 sm:mt-0">
+      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+    </div>
+  </div>
+);
+
 const TransactionsHistory = ({ accountId, refreshKey = 0 }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +84,25 @@ const TransactionsHistory = ({ accountId, refreshKey = 0 }) => {
     }
   };
 
-  if (loading) return <div className="text-gray-500 py-4">Loading transactions...</div>;
+  if (loading) {
+    return (
+      <div className="mt-6 bg-white rounded-xl shadow p-4">
+        {/* Header skeleton */}
+        <div className="hidden sm:grid grid-cols-6 gap-4 px-2 py-2 bg-gray-50 rounded-lg font-semibold text-gray-600 text-sm mb-2">
+          <div>Paid By</div>
+          <div>Amount</div>
+          <div>Where</div>
+          <div>Date</div>
+          <div>Member Expenses</div>
+          <div>Action</div>
+        </div>
+        <ul className="divide-y divide-gray-100">
+          <TransactionSkeleton />
+        </ul>
+      </div>
+    );
+  }
+  
   if (error) return <div className="text-red-600 py-4">{error}</div>;
   if (!transactions.length) return <div className="text-gray-400 py-4">No transactions found.</div>;
 
