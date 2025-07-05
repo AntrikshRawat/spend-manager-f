@@ -85,7 +85,7 @@ export default function Header() {
                     d="M4 12a8 8 0 018-8v8z"
                   ></path>
                 </svg>
-                <span className="text-lg font-semibold text-indigo-700 tracking-wide animate-pulse">
+                <span className="text-lg font-semibold text-indigo-700 tracking-wide">
                   {logoutMessage}
                 </span>
               </>
