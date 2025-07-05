@@ -7,6 +7,7 @@ import axiosInstance from '../functions/axiosInstance';
 import TransactionsHistory from '../components/TransactionsHistory';
 import { useNavigate } from 'react-router-dom';
 import AccountPaidSpend from '../components/AccountPaidSpend';
+import useUserStore from '../store/useUserStore';
 
 const AccountDetails = () => {
   const [account, setAccount] = useState({});
@@ -16,6 +17,7 @@ const AccountDetails = () => {
   const navigate = useNavigate();
   const [transactionsRefreshKey, setTransactionsRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
+  const {user} = useUserStore();
 
   const fetchAccountDetails = async () => {
     try {
@@ -138,8 +140,8 @@ const AccountDetails = () => {
                 </button>
                 <button
                   onClick={handleClearTransactions}
+                  disabled={account.totalTransaction === 0 ||account.accountHolder !== user._id || loading}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition disabled:opacity-50 w-full sm:w-auto"
-                  disabled={loading}
                 >
                   Clear Transactions
                 </button>
