@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HiX } from 'react-icons/hi';
 import useUserStore from '../store/useUserStore';
 import axiosInstance from '../functions/axiosInstance';
+import { toast } from 'react-toastify';
 
 const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId }) => {
   const {user} = useUserStore();
@@ -45,12 +46,15 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
           withCredentials: true,
         }
       );
-      alert("Transaction Added Successfully.")
-      onClose();
+      onClose(true);
+      setFormData({
+    amount: '',
+    where: '',
+  })
     } catch (err) {
       const errorMsg = err.response?.data?.message || 'Failed to add transaction.';
       setError(errorMsg);
-      alert(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -221,7 +225,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
             <div className="flex justify-end gap-4 mt-6">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={()=>{onClose(false)}}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel

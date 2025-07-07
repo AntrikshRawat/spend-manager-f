@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../functions/axiosInstance';
+import { toast } from 'react-toastify';
 
 const AccountPaidSpend = ({ accountMembers = [], accountId }) => {
   const [paidSummery, setPaidSummery] = useState({});
@@ -27,7 +28,7 @@ const AccountPaidSpend = ({ accountMembers = [], accountId }) => {
       } catch (err) {
         const errorMsg = err.response?.data?.message || 'Failed to fetch summary.';
         setError(errorMsg);
-        alert(errorMsg);
+        toast.error(errorMsg);
       } finally {
         setLoading(false);
       }

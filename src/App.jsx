@@ -8,6 +8,9 @@ import CreateAccount from './pages/CreateAccount'
 import About from './pages/About'
 import AccountDetails from './pages/AccountDetails'
 import RootLayout from './components/RootLayout'
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'; // Required CSS
+import Notifications from './components/Notifications';
 
 const router = createBrowserRouter([
   {
@@ -43,6 +46,10 @@ const router = createBrowserRouter([
         element: <CreateAccount />,
       },
       {
+        path: "notifications",
+        element: <Notifications />,
+      },
+      {
         path: "*",
         element: <NotFound />,
       },
@@ -53,6 +60,14 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <div className="min-h-screen bg-gray-100">
+            <ToastContainer 
+        position="top-right"
+        autoClose={2500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        theme="light"
+      />
       <RouterProvider router={router} />
     </div>
   )

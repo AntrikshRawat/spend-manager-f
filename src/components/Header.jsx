@@ -1,7 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { HiBell, HiUser } from 'react-icons/hi'
+import { HiBell } from 'react-icons/hi'
 import useUserStore from '../store/useUserStore'
+import socket from '../socket'
+import { toast } from 'react-toastify'
+import axiosInstance from '../functions/axiosInstance'
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -12,6 +15,31 @@ export default function Header() {
   const [logoutMessage, setLogoutMessage] = useState('');
   const {user,fetchUserInfo,setUser,logOutUser,isLoggedIn} = useUserStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      socket.emit("join_room",user._id)
+    });
+
+    socket.on("account",(note)=>{
+      toast.info(note.message);
+      if(!note.relatedAccount) {
+        navigate("/my-accounts");
+      }
+    })
+
+    socket.on("payment",(note)=>{
+      toast.info(note.message);
+    })
+
+    // Clean up
+    return () => {
+      socket.off("account");
+      socket.off("payment");
+      socket.off("connect");
+    };
+  });
+
   useEffect(()=>{
     const getUser =async()=>{
       const user = await fetchUserInfo();
@@ -49,7 +77,7 @@ export default function Header() {
         setLogoutMessage('');
         navigate('/login');
       }, 1000);
-    } catch (error) {
+    } catch {
       setLogoutMessage('Failed to log out. Please try again.');
       setTimeout(() => {
         setIsLoggingOut(false);
@@ -57,6 +85,74 @@ export default function Header() {
       }, 2000);
     }
   };
+
+  // Notification Component
+  function NotificationDropdown({ onClose }) {
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      const fetchNotifications = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/notifications`,{
+            withCredentials: true,
+          });
+          setNotifications(response.data || []);
+        } catch {
+          setError('Failed to load notifications');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchNotifications();
+    }, []);
+
+    // Only show the first 5 notifications
+    const visibleNotifications = notifications.slice(0, 5);
+
+    return (
+      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
+        <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-lg">&times;</button>
+        </div>
+        <div className="max-h-96 overflow-y-auto">
+          {loading && <div className="px-4 py-3 text-gray-500">Loading...</div>}
+          {error && <div className="px-4 py-3 text-red-500">{error}</div>}
+          {!loading && !error && visibleNotifications.length === 0 && (
+            <div className="px-4 py-3 text-gray-500">No notifications</div>
+          )}
+          {!loading && !error && visibleNotifications.map((note, idx) => (
+            <div key={idx} className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-500 font-semibold">From: {note.from}</span>
+                {note.timestamp && <span className="text-xs text-gray-400">{new Date(note.timestamp).toLocaleString()}</span>}
+              </div>
+              <p className="text-sm text-gray-800">{note.message}</p>
+            </div>
+          ))}
+        </div>
+        {/* Show More Button */}
+        {!loading && !error && notifications.length > 5 && (
+          <div className="px-4 py-2 border-t border-gray-100 text-center">
+            <button
+              className="text-blue-600 hover:underline font-medium"
+              onClick={() => {
+                onClose();
+                navigate('/notifications');
+              }}
+            >
+              Show More
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -211,28 +307,8 @@ export default function Header() {
                     >
                       <HiBell className="w-6 h-6 text-blue-500" />
                     </button>
-
-                    {/* Notification Dropdown */}
                     {isNotificationOpen && (
-                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
-                        </div>
-                        <div className="max-h-96 overflow-y-auto">
-                          <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                            <p className="text-sm text-gray-800">New expense added to Family Trip</p>
-                            <p className="text-xs text-gray-500 mt-1">2 minutes ago</p>
-                          </div>
-                          <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                            <p className="text-sm text-gray-800">someone added you to a new account</p>
-                            <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
-                          </div>
-                          <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                            <p className="text-sm text-gray-800">Your monthly spending report is ready</p>
-                            <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-                          </div>
-                        </div>
-                      </div>
+                      <NotificationDropdown onClose={toggleNotifications} />
                     )}
                   </div>
                 )}
@@ -277,16 +353,21 @@ export default function Header() {
             <div className="md:hidden flex items-center space-x-4">
               {/* Mobile Notification Bell - Only show if user is logged in */}
               {user && (
-                <button
-                  onClick={toggleNotifications}
-                  className={`p-2 rounded-full transition-colors duration-200 ${
-                    isScrolled
-                      ? 'text-gray-600 hover:bg-gray-100'
-                      : 'text-white hover:bg-white/10'
-                  }`}
-                >
-                  <HiBell className="w-6 h-6 animate-bounce text-green-500"/>
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={toggleNotifications}
+                    className={`p-2 rounded-full transition-colors duration-200 ${
+                      isScrolled
+                        ? 'text-gray-600 hover:bg-gray-100'
+                        : 'text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <HiBell className="w-6 h-6 animate-bounce text-green-500"/>
+                  </button>
+                  {isNotificationOpen && (
+                    <NotificationDropdown onClose={toggleNotifications} />
+                  )}
+                </div>
               )}
 
               <button

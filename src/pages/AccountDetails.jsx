@@ -8,6 +8,8 @@ import TransactionsHistory from '../components/TransactionsHistory';
 import { useNavigate } from 'react-router-dom';
 import AccountPaidSpend from '../components/AccountPaidSpend';
 import useUserStore from '../store/useUserStore';
+import socket from '../socket';
+import { toast } from 'react-toastify';
 
 const AccountDetails = () => {
   const [account, setAccount] = useState({});
@@ -27,14 +29,14 @@ const AccountDetails = () => {
         withCredentials: true,
       });
       if (!data || !data._id) {
-        alert('No account found');
+        toast.error('No account found');
         navigate('/my-accounts');
         return;
       }
       setAccount(data);
       fetchMembersName(data.accountMembers);
     } catch {
-      alert('No account found');
+      toast.error('No account found');
       navigate('/my-accounts');
     }
   }
@@ -56,6 +58,21 @@ const AccountDetails = () => {
       })
     }
   }
+  useEffect(() => {
+    socket.on("connect", () => {
+      socket.emit("join_room",user._id)
+    });
+
+    socket.on("payment", () => {
+      setTransactionsRefreshKey(k => k + 1)
+    });
+
+    // Clean up
+    return () => {
+      socket.off("payment");
+      socket.off("connect");
+    };
+  }, []);
 
   useEffect(() => {
     fetchAccountDetails();
@@ -66,7 +83,7 @@ const AccountDetails = () => {
     if (!window.confirm('Are you sure you want to clear all transactions?')) return;
     setLoading(true);
     try {
-      await axiosInstance.put(
+      const {data} = await axiosInstance.put(
         `${import.meta.env.VITE_BACKEND_URL}/payment/clear`,
         {},
         {
@@ -75,9 +92,10 @@ const AccountDetails = () => {
           withCredentials: true,
         }
       );
-      window.location.reload();
+      toast.success(data.message);
+      setTransactionsRefreshKey(k => k + 1)
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to clear transactions.');
+      toast.error(err.response?.data?.message || 'Failed to clear transactions.');
     } finally {
       setLoading(false);
     }
@@ -156,9 +174,12 @@ const AccountDetails = () => {
         isOpen={isAddTransactionOpen}
         accountMembers={members.map(member=>member.name)}
         accountId={account._id}
-        onClose={() => {
+        onClose={(value) => {
           setIsAddTransactionOpen(false);
-          window.location.reload();
+          if(value) {
+          toast.success("Transaction Added Successfully.");
+          setTransactionsRefreshKey(k => k + 1);
+          }
         }}
       />
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axiosInstance from '../functions/axiosInstance';
 import { HiTrash } from 'react-icons/hi';
 import useUserStore from '../store/useUserStore';
+import { toast } from 'react-toastify';
 
 // Skeleton Loading Component for Transactions
 const TransactionSkeleton = () => (
@@ -76,9 +77,10 @@ const TransactionsHistory = ({ accountId, refreshKey = 0 }) => {
           withCredentials: true,
         }
       );
-      window.location.reload();
+      fetchTransactions();
+      toast.success("Transaction deleted successfully.");
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete transaction.');
+      toast.error(err.response?.data?.message || 'Failed to delete transaction.');
     } finally {
       setDeletingId(null);
     }

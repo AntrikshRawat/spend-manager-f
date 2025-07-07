@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import debounce from '../functions/debounce'
 import axiosInstance from '../functions/axiosInstance'
 import useUserStore from '../store/useUserStore'
+import { toast } from 'react-toastify'
 
 const createAccount = async (accountName, members) => {
   try{
@@ -19,7 +20,7 @@ const createAccount = async (accountName, members) => {
     return response.data;
   }
   catch(err) {
-    alert(err.response.data?.message?.[0]?.msg || err.response.data?.message || 'Failed to create account.');
+    toast.error(err.response.data?.message?.[0]?.msg || err.response.data?.message || 'Failed to create account.');
     return err.response.data;
   }
 };
@@ -117,9 +118,11 @@ export default function CreateAccount() {
     setError('');
     setCreateLoading(true);
     try {
-      const data = await createAccount(accountName,extractMemberIds(members));
-      alert(data.message[0].msg ||data.message);
+      const data = await createAccount(accountName,extractMemberIds(members)); 
+      toast.success(data.message[0].msg ||data.message);
       navigate('/my-accounts');
+    }catch(err){
+     toast.error(err.message[0].msg ||err.message);
     } finally {
       setCreateLoading(false);
     }

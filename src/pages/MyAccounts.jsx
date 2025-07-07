@@ -3,6 +3,8 @@ import { HiOutlineTrash, HiOutlineEye, HiPlus, HiUserGroup } from 'react-icons/h
 import { useEffect, useState, useRef } from 'react'
 import useUserStore from '../store/useUserStore'
 import axiosInstance from '../functions/axiosInstance'
+import socket from '../socket'
+import { toast } from 'react-toastify'
 
 // Skeleton Loading Component
 const AccountSkeleton = () => (
@@ -48,7 +50,21 @@ export default function MyAccounts() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState('');
   const fetchAccountsRef = useRef();
+useEffect(() => {
+    socket.on("connect", () => {
+      socket.emit("join_room",user._id)
+    });
 
+    socket.on("account", () => {
+      fetchAccounts();
+    });
+
+    // Clean up
+    return () => {
+      socket.off("account");
+      socket.off("connect");
+    };
+  }, []);
   // Move fetchAccounts outside useEffect for reuse
   const fetchAccounts = async () => {
     try {
@@ -86,7 +102,7 @@ export default function MyAccounts() {
       setJoinedAccounts(updatedJoinedAccounts)
     } catch (error) {
       console.error('Error fetching accounts:', error)
-      alert('Failed to fetch accounts. Please try again.');
+      toast.error('Failed to fetch accounts. Please try again.');
       // You might want to show an error message to the user here
     } finally {
       setIsLoading(false)
@@ -134,7 +150,7 @@ export default function MyAccounts() {
     } catch (error) {
       console.error('Failed to delete account:', error);
       setDeleteMessage('Failed to delete account. Please try again.');
-      alert('Failed to delete account. Please try again.');
+      toast.error('Failed to delete account. Please try again.');
       setTimeout(() => {
         setIsDeleting(false);
         setDeleteMessage('');
