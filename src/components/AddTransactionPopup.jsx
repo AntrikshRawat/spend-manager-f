@@ -52,7 +52,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
     where: '',
   })
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Failed to add transaction.';
+      const errorMsg = err.response?.data?.message?.[0] || err.response?.data?.message || 'Failed to add transaction.';
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {

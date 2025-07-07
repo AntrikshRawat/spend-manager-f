@@ -115,7 +115,7 @@ export default function Header() {
     const visibleNotifications = notifications.slice(0, 5);
 
     return (
-      <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
+      <div className="absolute right-0 mt-2  w-80 xs:w-72 bg-white rounded-lg shadow-lg py-2 z-50">
         <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-lg">&times;</button>
@@ -299,7 +299,7 @@ export default function Header() {
                   <div className="relative">
                     <button
                       onClick={toggleNotifications}
-                      className={`p-2 rounded-full animate-bounce transition-colors duration-200 ${
+                      className={`p-2 rounded-full transition-colors duration-200 ${
                         isScrolled
                           ? 'text-gray-600 hover:bg-gray-100'
                           : 'text-white hover:bg-white/10'
@@ -362,7 +362,7 @@ export default function Header() {
                         : 'text-white hover:bg-white/10'
                     }`}
                   >
-                    <HiBell className="w-6 h-6 animate-bounce text-green-500"/>
+                    <HiBell className="w-6 h-6 text-green-500"/>
                   </button>
                   {isNotificationOpen && (
                     <NotificationDropdown onClose={toggleNotifications} />
