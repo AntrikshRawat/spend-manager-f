@@ -52,7 +52,7 @@ export default function MyAccounts() {
   const fetchAccountsRef = useRef();
 useEffect(() => {
     socket.on("connect", () => {
-      socket.emit("join_room",user._id)
+      socket.emit("join_room",user?._id)
     });
 
     socket.on("account", () => {
@@ -64,7 +64,7 @@ useEffect(() => {
       socket.off("account");
       socket.off("connect");
     };
-  }, []);
+  });
   // Move fetchAccounts outside useEffect for reuse
   const fetchAccounts = async () => {
     try {

@@ -18,7 +18,7 @@ export default function Header() {
 
   useEffect(() => {
     socket.on("connect", () => {
-      socket.emit("join_room",user._id)
+      socket.emit("join_room",user?._id)
     });
 
     socket.on("account",(note)=>{
@@ -115,7 +115,7 @@ export default function Header() {
     const visibleNotifications = notifications.slice(0, 5);
 
     return (
-      <div className="absolute right-0 mt-2  w-80 xs:w-72 bg-white rounded-lg shadow-lg py-2 z-50">
+      <div className="absolute right-0 mt-2 w-72  xl:w-80 md:w-72 xs:w-60 bg-white rounded-lg shadow-lg py-2 z-50">
         <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-lg">&times;</button>

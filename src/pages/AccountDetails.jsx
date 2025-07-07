@@ -60,7 +60,7 @@ const AccountDetails = () => {
   }
   useEffect(() => {
     socket.on("connect", () => {
-      socket.emit("join_room",user._id)
+      socket.emit("join_room",user?._id)
     });
 
     socket.on("payment", () => {
@@ -72,7 +72,7 @@ const AccountDetails = () => {
       socket.off("payment");
       socket.off("connect");
     };
-  }, []);
+  });
 
   useEffect(() => {
     fetchAccountDetails();
