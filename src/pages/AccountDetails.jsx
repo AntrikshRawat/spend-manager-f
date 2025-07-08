@@ -23,6 +23,7 @@ const AccountDetails = () => {
 
   const fetchAccountDetails = async () => {
     try {
+      setAccount({});
       const {data} = await axiosInstance.post(`${import.meta.env.VITE_BACKEND_URL}/account/details`,{
         acId
       },{
@@ -76,7 +77,7 @@ const AccountDetails = () => {
 
   useEffect(() => {
     fetchAccountDetails();
-  }, []);
+  }, [transactionsRefreshKey]);
 
   // Clear Transactions handler
   const handleClearTransactions = async () => {
@@ -94,7 +95,6 @@ const AccountDetails = () => {
       );
       toast.success(data.message);
       setTransactionsRefreshKey(k => k + 1);
-      fetchAccountDetails();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to clear transactions.');
     } finally {
@@ -170,7 +170,6 @@ const AccountDetails = () => {
             accountId={account._id}
             refreshKey={transactionsRefreshKey}
             newDeletion={()=>{
-              fetchAccountDetails();
               setTransactionsRefreshKey(k => k + 1);
             }}
             />
@@ -187,7 +186,6 @@ const AccountDetails = () => {
           if(value) {
           toast.success("Transaction Added Successfully.");
           setTransactionsRefreshKey(k => k + 1);
-          fetchAccountDetails();
           }
         }}
       />

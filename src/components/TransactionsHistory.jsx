@@ -77,7 +77,6 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion }) => {
           withCredentials: true,
         }
       );
-      fetchTransactions();
       toast.success("Transaction deleted successfully.");
       newDeletion();
     } catch (err) {
