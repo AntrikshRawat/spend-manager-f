@@ -127,7 +127,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Add Transaction</h2>
             <button
-              onClick={onClose}
+              onClick={()=>{onClose(false)}}
               className="text-gray-500 hover:text-gray-700 transition-colors"
             >
               <HiX className="w-6 h-6" />
