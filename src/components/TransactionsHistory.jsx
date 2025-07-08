@@ -27,7 +27,7 @@ const TransactionSkeleton = () => (
   </div>
 );
 
-const TransactionsHistory = ({ accountId, refreshKey = 0 }) => {
+const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -79,6 +79,7 @@ const TransactionsHistory = ({ accountId, refreshKey = 0 }) => {
       );
       fetchTransactions();
       toast.success("Transaction deleted successfully.");
+      newDeletion();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete transaction.');
     } finally {

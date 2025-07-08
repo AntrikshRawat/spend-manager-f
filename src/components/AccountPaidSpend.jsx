@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../functions/axiosInstance';
 import { toast } from 'react-toastify';
 
-const AccountPaidSpend = ({ accountMembers = [], accountId }) => {
+const AccountPaidSpend = ({ accountMembers = [], accountId ,refreshKey}) => {
   const [paidSummery, setPaidSummery] = useState({});
   const [expenseSummery, setExpenseSummery] = useState({});
   const [loading, setLoading] = useState(false);
@@ -34,7 +34,7 @@ const AccountPaidSpend = ({ accountMembers = [], accountId }) => {
       }
     };
     fetchPaidSpend();
-  }, [accountId, accountMembers]);
+  }, [accountId, accountMembers,refreshKey]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

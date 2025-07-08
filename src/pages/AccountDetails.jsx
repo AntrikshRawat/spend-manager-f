@@ -93,7 +93,8 @@ const AccountDetails = () => {
         }
       );
       toast.success(data.message);
-      setTransactionsRefreshKey(k => k + 1)
+      setTransactionsRefreshKey(k => k + 1);
+      fetchAccountDetails();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to clear transactions.');
     } finally {
@@ -132,7 +133,7 @@ const AccountDetails = () => {
           </div>
         </div>
 
-        <AccountPaidSpend accountMembers={members.map(member=>member.name)} accountId={account._id} />
+        <AccountPaidSpend accountMembers={members.map(member=>member.name)} accountId={account._id} refreshKey={transactionsRefreshKey}/>
 
         {/* Transaction Section */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -165,7 +166,14 @@ const AccountDetails = () => {
                 </button>}
               </div>
             </div>
-            <TransactionsHistory accountId={account._id} refreshKey={transactionsRefreshKey} />
+            <TransactionsHistory
+            accountId={account._id}
+            refreshKey={transactionsRefreshKey}
+            newDeletion={()=>{
+              fetchAccountDetails();
+              setTransactionsRefreshKey(k => k + 1);
+            }}
+            />
           </div>
         </div>
       </div>
@@ -179,6 +187,7 @@ const AccountDetails = () => {
           if(value) {
           toast.success("Transaction Added Successfully.");
           setTransactionsRefreshKey(k => k + 1);
+          fetchAccountDetails();
           }
         }}
       />
