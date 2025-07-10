@@ -172,6 +172,7 @@ const AccountDetails = () => {
             refreshKey={transactionsRefreshKey}
             newDeletion={()=>{
               setTransactionsRefreshKey(k => k + 1);
+              fetchAccountDetails();
             }}
             />
           </div>
