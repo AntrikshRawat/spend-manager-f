@@ -66,7 +66,8 @@ const AccountDetails = () => {
     });
 
     socket.on("payment", () => {
-      setTransactionsRefreshKey(k => k + 1)
+      setTransactionsRefreshKey(k => k + 1);
+      fetchAccountDetails();
     });
 
     // Clean up
@@ -188,6 +189,7 @@ const AccountDetails = () => {
           if(value) {
           toast.success("Transaction Added Successfully.");
           setTransactionsRefreshKey(k => k + 1);
+          fetchAccountDetails();
           }
         }}
       />

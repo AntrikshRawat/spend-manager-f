@@ -4,8 +4,8 @@ import useUserStore from '../store/useUserStore';
 import axiosInstance from '../functions/axiosInstance';
 import { toast } from 'react-toastify';
 
-const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId }) => {
-  const {user} = useUserStore();
+const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId }) => {
+  const { user } = useUserStore();
   const [formData, setFormData] = useState({
     amount: '',
     where: '',
@@ -19,7 +19,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
     e.preventDefault();
     const total = memberAmounts.reduce((sum, val) => sum + Number(val || 0), 0);
     const transactionAmount = Number(formData.amount);
-    
+
     if (total !== transactionAmount) {
       setError(`Total of member amounts (₹${total}) must equal the transaction amount (₹${transactionAmount})`);
       return;
@@ -37,7 +37,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
           memberExpenses: memberAmounts,
         },
         {
-          params:{
+          params: {
             accountId
           },
           headers: {
@@ -48,9 +48,9 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
       );
       onClose(true);
       setFormData({
-    amount: '',
-    where: '',
-  })
+        amount: '',
+        where: '',
+      })
     } catch (err) {
       const errorMsg = err.response?.data?.message?.[0] || err.response?.data?.message || 'Failed to add transaction.';
       setError(errorMsg);
@@ -62,14 +62,14 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
 
   const handleChange = (e) => {
     let { name, value } = e.target;
-    if(name === "amount") {
-      value = value>10000?10000:value; 
+    if (name === "amount") {
+      value = value > 10000 ? 10000 : value;
     }
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // If amount changes, recalculate equal split if enabled
     if (name === 'amount' && equalSplit) {
       const transactionAmount = Number(value);
@@ -127,7 +127,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Add Transaction</h2>
             <button
-              onClick={()=>{onClose(false)}}
+              onClick={() => { onClose(false) }}
               className="text-gray-500 hover:text-gray-700 transition-colors"
             >
               <HiX className="w-6 h-6" />
@@ -135,7 +135,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Paid By
               </label>
@@ -196,7 +196,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
                   </label>
                 </div>
               </div>
-              
+
               <div className="space-y-3 border-1 p-3 rounded-xl bg-gray-50">
                 {accountMembers.map((member, idx) => (
                   <div key={member} className="flex items-center gap-3">
@@ -225,7 +225,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [],accountId })
             <div className="flex justify-end gap-4 mt-6">
               <button
                 type="button"
-                onClick={()=>{onClose(false)}}
+                onClick={() => { onClose(false) }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel

@@ -16,29 +16,35 @@ export default function Header() {
   const {user,fetchUserInfo,setUser,logOutUser,isLoggedIn} = useUserStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    socket.on("connect", () => {
-      socket.emit("join_room",user?._id)
-    });
+ useEffect(() => {
+  if (!socket || !user?._id) return;
 
-    socket.on("account",(note)=>{
-      toast.info(note.message);
-      if(!note.relatedAccount) {
-        navigate("/my-accounts");
-      }
-    })
+  const handleConnect = () => {
+    socket.emit("join_room", user?._id);
+  };
 
-    socket.on("payment",(note)=>{
-      toast.info(note.message);
-    })
+  const handleAccount = (note) => {
+    toast.info(note.message);
+    if (!note.relatedAccount) {
+      navigate("/my-accounts");
+    }
+  };
 
-    // Clean up
-    return () => {
-      socket.off("account");
-      socket.off("payment");
-      socket.off("connect");
-    };
-  });
+  const handlePayment = (note) => {
+    toast.info(note.message);
+  };
+
+  socket.on("connect", handleConnect);
+  socket.on("account", handleAccount);
+  socket.on("payment", handlePayment);
+
+  return () => {
+    socket.off("connect", handleConnect);
+    socket.off("account", handleAccount);
+    socket.off("payment", handlePayment);
+  };
+});
+
 
   useEffect(()=>{
     const getUser =async()=>{
