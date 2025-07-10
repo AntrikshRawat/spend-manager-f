@@ -47,6 +47,7 @@ const AccountDetails = () => {
       },{
         withCredentials: true,
       });
+      setMembers([])
     for(let i=0;i<data.length;i++) {
       setMembers((prev)=>{
         const list = [...prev];
@@ -77,7 +78,7 @@ const AccountDetails = () => {
 
   useEffect(() => {
     fetchAccountDetails();
-  }, [transactionsRefreshKey]);
+  }, []);
 
   // Clear Transactions handler
   const handleClearTransactions = async () => {

@@ -36,6 +36,7 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion }) => {
 
   const fetchTransactions = async () => {
     setLoading(true);
+    setTransactions([]);
     setError('');
     try {
       const { data } = await axiosInstance.get(
