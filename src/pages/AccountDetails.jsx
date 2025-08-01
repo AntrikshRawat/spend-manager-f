@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { HiArrowLeft, HiPlus, HiRefresh } from 'react-icons/hi';
+import { HiArrowLeft, HiPlus, HiRefresh, HiSparkles } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import AddTransactionPopup from '../components/AddTransactionPopup';
@@ -20,6 +20,9 @@ const AccountDetails = () => {
   const [transactionsRefreshKey, setTransactionsRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const {user} = useUserStore();
+  const [isAISummaryLoading, setIsAISummaryLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState('');
+  const [showSummaryPopup, setShowSummaryPopup] = useState(false);
 
   const fetchAccountDetails = async () => {
     try {
@@ -97,6 +100,7 @@ const AccountDetails = () => {
       );
       toast.success(data.message);
       setTransactionsRefreshKey(k => k + 1);
+      fetchAccountDetails();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to clear transactions.');
     } finally {
@@ -104,8 +108,46 @@ const AccountDetails = () => {
     }
   };
 
+  // AI Summarizer handler
+  const handleAISummarizer = async () => {
+    // Check if minimum transactions requirement is met
+    if (account.totalTransaction < 5) {
+      toast.info('Minimum 5 transactions required for AI summary analysis');
+      return;
+    }
+
+    setIsAISummaryLoading(true);
+    setShowSummaryPopup(true);
+    try {
+      const { data } = await axiosInstance.post(
+        `${import.meta.env.VITE_BACKEND_URL}/accountsummary`,
+        {
+          accountId: account._id
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      if (data && data.summery) {
+        setAiSummary(data.summery);
+      } else {
+        toast.error('No summary available');
+      }
+    } catch {
+      toast.error('Failed to generate AI summary');
+      setShowSummaryPopup(false);
+    } finally {
+      setIsAISummaryLoading(false);
+    }
+  };
+
+  const closeSummaryPopup = () => {
+    setShowSummaryPopup(false);
+    setAiSummary('');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-8 px-4 pb-24">
       <div className="max-w-4xl mx-auto">
         {/* Header Section */}
         <div className="mb-8">
@@ -179,6 +221,86 @@ const AccountDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Sticky AI Summarizer Button */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <button
+          onClick={handleAISummarizer}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 active:scale-95"
+        >
+          <HiSparkles className="w-5 h-5" />
+          <span className="font-semibold">AI Summarizer</span>
+        </button>
+      </div>
+
+      {/* AI Summary Popup */}
+      {showSummaryPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <HiSparkles className="w-6 h-6" />
+                  <h2 className="text-xl font-bold">AI Account Summary</h2>
+                </div>
+                <button
+                  onClick={closeSummaryPopup}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-y-auto p-6">
+                {isAISummaryLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <HiSparkles className="w-8 h-8 text-purple-600 animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="mt-6 text-center">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">AI is analyzing your account...</h3>
+                      <p className="text-gray-600">Generating intelligent insights from your transaction data</p>
+                    </div>
+                    <div className="mt-4 flex space-x-1">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
+                      <h3 className="font-semibold text-gray-800 mb-2">📊 Account Insights</h3>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{aiSummary}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Fixed Footer with Close Button */}
+              <div className="border-t border-gray-200 p-4 bg-white">
+                <div className="flex justify-end">
+                  <button
+                    onClick={closeSummaryPopup}
+                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-semibold"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AddTransactionPopup
         isOpen={isAddTransactionOpen}

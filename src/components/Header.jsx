@@ -80,14 +80,12 @@ export default function Header() {
       setLogoutMessage('Logged out successfully!');
       setTimeout(() => {
         setIsLoggingOut(false);
-        setLogoutMessage('');
         navigate('/login');
       }, 1000);
     } catch {
       setLogoutMessage('Failed to log out. Please try again.');
       setTimeout(() => {
         setIsLoggingOut(false);
-        setLogoutMessage('');
       }, 2000);
     }
   };
