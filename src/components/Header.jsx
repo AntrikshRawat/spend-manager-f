@@ -74,16 +74,16 @@ export default function Header() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    setLogoutMessage('Logging out...');
+    setLogoutMessage("Logging out...");
     try {
       await logOutUser();
-      setLogoutMessage('Logged out successfully!');
+      setLogoutMessage("Logged out successfully!");
       setTimeout(() => {
         setIsLoggingOut(false);
         navigate('/login');
       }, 1000);
     } catch {
-      setLogoutMessage('Failed to log out. Please try again.');
+      setLogoutMessage("Failed to log out. Please try again.");
       setTimeout(() => {
         setIsLoggingOut(false);
       }, 2000);
@@ -216,7 +216,7 @@ export default function Header() {
                       className="inline-block"
                     >
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg mx-2">
-                        {user.userName ? user.userName.charAt(0).toUpperCase() : ''}
+                        {user?.userName ? user?.userName.charAt(0).toUpperCase() : ''}
                       </div>
                     </button>
                     
@@ -228,13 +228,13 @@ export default function Header() {
                         </div>
                         <div className="px-4 py-3">
                         <p className="text-sm text-gray-600">
-                            <span className="font-medium">UserName:</span> {user.userName}
+                            <span className="font-medium">UserName:</span> {user?.userName}
                           </p>
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium">FullName:</span> {`${user.firstName}`.toUpperCase()} {`${user.lastName}`.toUpperCase()}
+                            <span className="font-medium">FullName:</span> {`${user?.firstName}`.toUpperCase()} {`${user?.lastName}`.toUpperCase()}
                           </p>
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium">Email:</span> {user.email}
+                            <span className="font-medium">Email:</span> {user?.email}
                           </p>
                         </div>
                         <div className="px-4 py-2 border-t border-gray-100">

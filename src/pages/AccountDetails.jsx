@@ -10,6 +10,7 @@ import AccountPaidSpend from '../components/AccountPaidSpend';
 import useUserStore from '../store/useUserStore';
 import socket from '../socket';
 import { toast } from 'react-toastify';
+import ReportViewer from '../components/ReportViewer';
 
 const AccountDetails = () => {
   const [account, setAccount] = useState({});
@@ -128,8 +129,8 @@ const AccountDetails = () => {
           withCredentials: true,
         }
       );
-      if (data && data.summery) {
-        setAiSummary(data.summery);
+      if (data && data.summary) {
+        setAiSummary(data.summary);
       } else {
         toast.error('No summary available');
       }
@@ -236,7 +237,7 @@ const AccountDetails = () => {
       {/* AI Summary Popup */}
       {showSummaryPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-scroll">
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6">
               <div className="flex items-center justify-between">
@@ -280,7 +281,7 @@ const AccountDetails = () => {
                   <div className="space-y-4">
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
                       <h3 className="font-semibold text-gray-800 mb-2">📊 Account Insights</h3>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{aiSummary}</p>
+                        <ReportViewer text={aiSummary}/>
                     </div>
                   </div>
                 )}
