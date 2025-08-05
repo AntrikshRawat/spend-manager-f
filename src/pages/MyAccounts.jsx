@@ -70,7 +70,7 @@ const fetchAccounts = async () => {
   try {
     setIsLoading(true);
 
-    const {data} = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/getaccounts`, {
+    const {data} = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/account/getaccounts`, {
       headers: {
         'Content-Type': 'application/json',
       },
