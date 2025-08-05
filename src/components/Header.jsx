@@ -54,7 +54,9 @@ export default function Header() {
     if(!user && isLoggedIn){
       getUser();
     }
-  }, [fetchUserInfo, setUser,user,isLoggedIn])
+  }, [fetchUserInfo, setUser,user,isLoggedIn]);
+
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY
@@ -62,7 +64,7 @@ export default function Header() {
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, []);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -216,7 +218,7 @@ export default function Header() {
                       className="inline-block"
                     >
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg mx-2">
-                        {user?.userName ? user?.userName.charAt(0).toUpperCase() : ''}
+                        {user?.userName ? user?.userName?.charAt(0).toUpperCase() : ''}
                       </div>
                     </button>
                     

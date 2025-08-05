@@ -66,48 +66,39 @@ useEffect(() => {
     };
   });
   // Move fetchAccounts outside useEffect for reuse
-  const fetchAccounts = async () => {
-    try {
-      setIsLoading(true)
-      // Fetch created accounts
-      const createdResponse = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/account/created`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      })
-      let updatedCreatedAccounts = [];
-      if(createdResponse.data.length > 0) {
-      updatedCreatedAccounts = createdResponse.data.map(account => ({
-        ...account,
-        isCreator: true
-      }))
-    }
-      setCreatedAccounts(updatedCreatedAccounts)
+const fetchAccounts = async () => {
+  try {
+    setIsLoading(true);
 
-      // Fetch joined accounts
-      const joinedResponse = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/account/other`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      })
-      let updatedJoinedAccounts  = [];
-      if(joinedResponse.data.length > 0) {
-      updatedJoinedAccounts = joinedResponse.data.map(account => ({
-        ...account,
-        isCreator: false
-      }))
-    }
-      setJoinedAccounts(updatedJoinedAccounts)
-    } catch (error) {
-      console.error('Error fetching accounts:', error)
-      toast.error('Failed to fetch accounts. Please try again.');
-      // You might want to show an error message to the user here
-    } finally {
-      setIsLoading(false)
-    }
+    const {data} = await axiosInstance.get(`${import.meta.env.VITE_BACKEND_URL}/getaccounts`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
+    });
+
+    const { created = [], joined = [] } = data;
+
+    const updatedCreatedAccounts = created.map(account => ({
+      ...account,
+      isCreator: true
+    }));
+
+    const updatedJoinedAccounts = joined.map(account => ({
+      ...account,
+      isCreator: false
+    }));
+
+    setCreatedAccounts(updatedCreatedAccounts);
+    setJoinedAccounts(updatedJoinedAccounts);
+
+  } catch (error) {
+    console.error('Error fetching accounts:', error);
+    toast.error('Failed to fetch accounts. Please try again.');
+  } finally {
+    setIsLoading(false);
   }
+};
   fetchAccountsRef.current = fetchAccounts;
 
   useEffect(() => {
