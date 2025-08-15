@@ -13,6 +13,7 @@ export default function Header() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState("");
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, fetchUserInfo, setUser, logOutUser, isLoggedIn } =
     useUserStore();
   const navigate = useNavigate();
@@ -250,12 +251,51 @@ export default function Header() {
               }`}
             >
               {user && (
-                <div className="relative inline-block">
-                  <Link to="/profile" className="inline-block">
-                    <FaUser className="w-6 h-6 p-0 m-0 mt-1 text-blue-500 border-white rounded-full" />
-                  </Link>
-                </div>
-              )}
+                // <div className="relative inline-block">
+                //   <Link to="/profile" className="inline-block">
+                //     <FaUser className="w-6 h-6 p-0 m-0 mt-1 text-blue-500 border-white rounded-full" />
+                //   </Link>
+                // </div>
+                  <div className="relative inline-block">
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="inline-block"
+                    >
+                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg mx-2">
+                        {user.userName ? user.userName.charAt(0).toUpperCase() : ''}
+                      </div>
+                    </button>
+                    
+                    {/* User Menu Dropdown */}
+                    {isUserMenuOpen && (
+                      <div className="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <h3 className="text-sm font-semibold text-gray-800">User Profile</h3>
+                        </div>
+                        <div className="px-4 py-3">
+                        <p className="text-sm text-gray-600">
+                            <span className="font-medium">UserName:</span> {user.userName}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">FullName:</span> {`${user.firstName}`.toUpperCase()} {`${user.lastName}`.toUpperCase()}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Email:</span> {user.email}
+                          </p>
+                        </div>
+                        <div className="px-4 py-2 border-t border-gray-100">
+                          <Link
+                            to="/change-password"
+                            className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 text-center"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            Change Password
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               <Link
                 to="/"
                 className={`text-xl font-bold mx-1 ${
