@@ -56,18 +56,15 @@ export default function MyAccounts() {
   const [deleteMessage, setDeleteMessage] = useState("");
   const fetchAccountsRef = useRef();
   useEffect(() => {
-    socket.on("connect", () => {
-      socket.emit("join_room", user?._id);
-    });
 
-    socket.on("account", () => {
+    socket?.on("account", () => {
       fetchAccounts();
     });
 
     // Clean up
     return () => {
-      socket.off("account");
-      socket.off("connect");
+      socket?.off("account");
+      socket?.off("connect");
     };
   });
   // Move fetchAccounts outside useEffect for reuse

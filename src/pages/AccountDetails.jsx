@@ -65,19 +65,16 @@ const AccountDetails = () => {
     }
   }
   useEffect(() => {
-    socket.on("connect", () => {
-      socket.emit("join_room",user?._id)
-    });
 
-    socket.on("payment", () => {
+    socket?.on("payment", () => {
       setTransactionsRefreshKey(k => k + 1);
       fetchAccountDetails();
     });
 
     // Clean up
     return () => {
-      socket.off("payment");
-      socket.off("connect");
+      socket?.off("payment");
+      socket?.off("connect");
     };
   });
 
