@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { HiBell } from "react-icons/hi";
 import useUserStore from "../store/useUserStore";
 import socket from "../socket";
@@ -14,44 +14,94 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, fetchUserInfo, setUser, logOutUser, isLoggedIn } =
-    useUserStore();
+  
+  // Use ref to track if component is mounted
+  const isMountedRef = useRef(true);
+  const logoutTimeoutRef = useRef(null);
+  
+  const { user, fetchUserInfo, setUser, logOutUser, isLoggedIn } = useUserStore();
   const navigate = useNavigate();
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (!socket || !user?._id) return;
-
-    const handleConnect = () => {
-      socket.emit("join_room", user?._id);
+    return () => {
+      isMountedRef.current = false;
+      if (logoutTimeoutRef.current) {
+        clearTimeout(logoutTimeoutRef.current);
+      }
     };
+  }, []);
 
-    const handleAccount = (note) => {
-      toast.info(note.message);
+  // Socket handlers with safety checks
+  const handleConnect = useCallback(() => {
+    if (socket && user?._id && isMountedRef.current) {
+      socket.emit("join_room", user._id);
+    }
+  }, [user?._id]);
+
+  const handleAccount = useCallback((note) => {
+    if (!isMountedRef.current) return;
+    
+    try {
+      if (note?.message) {
+        toast.info(note.message);
+      }
       if (!note.relatedAccount) {
         navigate("/my-accounts");
       }
-    };
+    } catch (error) {
+      console.error("Error handling account notification:", error);
+    }
+  }, [navigate]);
 
-    const handlePayment = (note) => {
-      toast.info(note.message);
-    };
+  const handlePayment = useCallback((note) => {
+    if (!isMountedRef.current) return;
+    
+    try {
+      if (note?.message) {
+        toast.info(note.message);
+      }
+    } catch (error) {
+      console.error("Error handling payment notification:", error);
+    }
+  }, []);
+
+  // Socket effect with proper dependencies and cleanup
+  useEffect(() => {
+    if (!socket || !user?._id || !isMountedRef.current) return;
 
     socket.on("connect", handleConnect);
     socket.on("account", handleAccount);
     socket.on("payment", handlePayment);
 
+    // Emit join room if already connected
+    if (socket.connected) {
+      handleConnect();
+    }
+
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("account", handleAccount);
-      socket.off("payment", handlePayment);
+      if (socket) {
+        socket.off("connect", handleConnect);
+        socket.off("account", handleAccount);
+        socket.off("payment", handlePayment);
+      }
     };
-  });
+  }, [user?._id, handleConnect, handleAccount, handlePayment]);
 
   useEffect(() => {
     const getUser = async () => {
-      const user = await fetchUserInfo();
-      setUser(user);
+      if (!isMountedRef.current) return;
+      
+      try {
+        const userData = await fetchUserInfo();
+        if (isMountedRef.current && userData) {
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
     };
+    
     if (!user && isLoggedIn) {
       getUser();
     }
@@ -59,40 +109,60 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
+      if (!isMountedRef.current) return;
       const scrollPosition = window.scrollY;
       setIsScrolled(scrollPosition > 20);
     };
+    
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMobileMenu = () => {
+    if (!isMountedRef.current) return;
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const toggleNotifications = () => {
+    if (!isMountedRef.current) return;
     setIsNotificationOpen(!isNotificationOpen);
   };
 
   const handleLogout = async () => {
+    if (!isMountedRef.current) return;
+    
     setIsLoggingOut(true);
     setLogoutMessage("Logging out...");
+    
     try {
       await logOutUser();
+      
+      if (!isMountedRef.current) return;
+      
       setLogoutMessage("Logged out successfully!");
-      setTimeout(() => {
-        setIsLoggingOut(false);
-        navigate("/login");
+      
+      logoutTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setIsLoggingOut(false);
+          navigate("/login");
+        }
       }, 1000);
-    } catch {
+    } catch (error) {
+      console.error("Logout error:", error);
+      
+      if (!isMountedRef.current) return;
+      
       setLogoutMessage("Failed to log out. Please try again.");
-      setTimeout(() => {
-        setIsLoggingOut(false);
+      
+      logoutTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setIsLoggingOut(false);
+        }
       }, 2000);
     }
   };
 
-  // Notification Component
+  // Notification Component with error boundaries
   function NotificationDropdown({ onClose }) {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -101,8 +171,11 @@ export default function Header() {
 
     useEffect(() => {
       const fetchNotifications = async () => {
+        if (!isMountedRef.current) return;
+        
         setLoading(true);
         setError(null);
+        
         try {
           const response = await axiosInstance.get(
             `${import.meta.env.VITE_BACKEND_URL}/notifications`,
@@ -110,13 +183,22 @@ export default function Header() {
               withCredentials: true,
             }
           );
-          setNotifications(response.data || []);
-        } catch {
-          setError("Failed to load notifications");
+          
+          if (isMountedRef.current) {
+            setNotifications(response.data || []);
+          }
+        } catch (err) {
+          console.error("Error fetching notifications:", err);
+          if (isMountedRef.current) {
+            setError("Failed to load notifications");
+          }
         } finally {
-          setLoading(false);
+          if (isMountedRef.current) {
+            setLoading(false);
+          }
         }
       };
+      
       fetchNotifications();
     }, []);
 
@@ -144,12 +226,12 @@ export default function Header() {
             !error &&
             visibleNotifications.map((note, idx) => (
               <div
-                key={idx}
+                key={note.id || idx} // Use proper key
                 className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-gray-500 font-semibold">
-                    From: {note.from}
+                    From: {note.from || 'System'}
                   </span>
                   {note.timestamp && (
                     <span className="text-xs text-gray-400">
@@ -157,7 +239,7 @@ export default function Header() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-800">{note.message}</p>
+                <p className="text-sm text-gray-800">{note.message || 'No message'}</p>
               </div>
             ))}
         </div>
@@ -251,51 +333,46 @@ export default function Header() {
               }`}
             >
               {user && (
-                // <div className="relative inline-block">
-                //   <Link to="/profile" className="inline-block">
-                //     <FaUser className="w-6 h-6 p-0 m-0 mt-1 text-blue-500 border-white rounded-full" />
-                //   </Link>
-                // </div>
-                  <div className="relative inline-block">
-                    <button
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="inline-block"
-                    >
-                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg mx-2">
-                        {user.userName ? user.userName.charAt(0).toUpperCase() : ''}
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="inline-block"
+                  >
+                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg mx-2">
+                      {user.userName ? user.userName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                  </button>
+                  
+                  {/* User Menu Dropdown */}
+                  {isUserMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-800">User Profile</h3>
                       </div>
-                    </button>
-                    
-                    {/* User Menu Dropdown */}
-                    {isUserMenuOpen && (
-                      <div className="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
-                        <div className="px-4 py-3 border-b border-gray-100">
-                          <h3 className="text-sm font-semibold text-gray-800">User Profile</h3>
-                        </div>
-                        <div className="px-4 py-3">
+                      <div className="px-4 py-3">
                         <p className="text-sm text-gray-600">
-                            <span className="font-medium">UserName:</span> {user.userName}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">FullName:</span> {`${user.firstName}`.toUpperCase()} {`${user.lastName}`.toUpperCase()}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Email:</span> {user.email}
-                          </p>
-                        </div>
-                        <div className="px-4 py-2 border-t border-gray-100">
-                          <Link
-                            to="/change-password"
-                            className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 text-center"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            Change Password
-                          </Link>
-                        </div>
+                          <span className="font-medium">UserName:</span> {user.userName || 'N/A'}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">FullName:</span> {user.firstName ? user.firstName.toUpperCase() : 'N/A'} {user.lastName ? user.lastName.toUpperCase() : ''}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">Email:</span> {user.email || 'N/A'}
+                        </p>
                       </div>
-                    )}
-                  </div>
-                )}
+                      <div className="px-4 py-2 border-t border-gray-100">
+                        <Link
+                          to="/change-password"
+                          className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 text-center"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          Change Password
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <Link
                 to="/"
                 className={`text-xl font-bold mx-1 ${
@@ -368,9 +445,10 @@ export default function Header() {
                 {user ? (
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-2 rounded-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transition-all duration-200"
+                    disabled={isLoggingOut}
+                    className="px-4 py-2 rounded-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Logout
+                    {isLoggingOut ? "Logging out..." : "Logout"}
                   </button>
                 ) : (
                   <>
@@ -507,9 +585,10 @@ export default function Header() {
                       handleLogout();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="text-left mx-2 px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transition-all duration-200"
+                    disabled={isLoggingOut}
+                    className="text-left mx-2 px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Logout
+                    {isLoggingOut ? "Logging out..." : "Logout"}
                   </button>
                 </>
               )}
