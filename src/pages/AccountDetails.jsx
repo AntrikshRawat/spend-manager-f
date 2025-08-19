@@ -65,16 +65,12 @@ const AccountDetails = () => {
     }
   }
   useEffect(() => {
-
     socket?.on("payment", () => {
       setTransactionsRefreshKey(k => k + 1);
       fetchAccountDetails();
     });
-
-    // Clean up
     return () => {
       socket?.off("payment");
-      socket?.off("connect");
     };
   });
 

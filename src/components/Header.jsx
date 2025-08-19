@@ -71,8 +71,8 @@ export default function Header() {
     if (!socket || !user?._id || !isMountedRef.current) return;
 
     socket.on("connect", handleConnect);
-    socket.on("account", handleAccount);
-    socket.on("payment", handlePayment);
+    socket.on("account-notification", handleAccount);
+    socket.on("payment-notification", handlePayment);
 
     // Emit join room if already connected
     if (socket.connected) {
