@@ -102,9 +102,7 @@ const AccountDetails = () => {
     }
   };
 
-  // AI Summarizer handler
   const handleAISummarizer = async () => {
-    // Check if minimum transactions requirement is met
     if (account.totalTransaction < 5) {
       toast.info('Minimum 5 transactions required for AI summary analysis');
       return;

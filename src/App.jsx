@@ -16,6 +16,7 @@ import Notifications from "./components/Notifications";
 // import ForgotPassword from "./pages/ForgotPassword";
 import axios from "axios";
 import { useEffect } from "react";
+import useUserStore from "./store/useUserStore";
 
 const router = createBrowserRouter([
   {
@@ -90,14 +91,20 @@ async function subscribeUser() {
     // subscribe to push manager
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(`${import.meta.env.VITE_VAPID_PUBLIC_KEY}`),
+      applicationServerKey: urlBase64ToUint8Array(
+        `${import.meta.env.VITE_VAPID_PUBLIC_KEY}`
+      ),
     });
 
     // send subscription to backend
-   await axios.post(`${import.meta.env.VITE_BACKEND_URL}/userAccount/subscribe`, subscription, {
-        headers: { "Content-Type": "application/json" }
-      });
-
+    await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/userAccount/subscribe`,
+     { subscription},
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true
+      }
+    );
   } catch (err) {
     console.error("Subscription failed", err);
   }
@@ -111,8 +118,11 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default function App() {
-  useEffect(()=>{
-    subscribeUser();
+  const { user } = useUserStore();
+  useEffect(() => {
+    if (user && user._id) {
+      subscribeUser();
+    }
   }, []);
   return (
     <div className="min-h-screen bg-gray-100">
