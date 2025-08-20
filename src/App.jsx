@@ -99,7 +99,7 @@ async function subscribeUser() {
     // send subscription to backend
     await axios.post(
       `${import.meta.env.VITE_BACKEND_URL}/userAccount/subscribe`,
-     { subscription},
+      {subscription},
       {
         headers: { "Content-Type": "application/json" },
         withCredentials: true
