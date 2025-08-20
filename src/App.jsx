@@ -11,9 +11,9 @@ import RootLayout from "./components/RootLayout";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"; // Required CSS
 import Notifications from "./components/Notifications";
-import Profile from "./pages/Profile";
-import ChangePassword from "./pages/ChangePassword";
-import ForgotPassword from "./pages/ForgotPassword";
+// import Profile from "./pages/Profile";
+// import ChangePassword from "./pages/ChangePassword";
+// import ForgotPassword from "./pages/ForgotPassword";
 import axios from "axios";
 import { useEffect } from "react";
 
@@ -54,18 +54,18 @@ const router = createBrowserRouter([
         path: "notifications",
         element: <Notifications />,
       },
-      {
-        path: "profile",
-        element: <Profile />,
-      },
-      {
-        path: "change-password",
-        element: <ChangePassword />,
-      },
-      {
-        path: "forgot-password",
-        element: <ForgotPassword />,
-      },
+      // {
+      //   path: "profile",
+      //   element: <Profile />,
+      // },
+      // {
+      //   path: "change-password",
+      //   element: <ChangePassword />,
+      // },
+      // {
+      //   path: "forgot-password",
+      //   element: <ForgotPassword />,
+      // },
       {
         path: "*",
         element: <NotFound />,
