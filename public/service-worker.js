@@ -3,7 +3,6 @@ self.addEventListener("push", (event) => {
 
   self.registration.showNotification(data.title, {
     body: data.body,
-    icon: "/logo-256x256.png",
-    badge: "/logo-192x192.png" 
+    icon: "/logo-256x256.png", 
   });
 });
