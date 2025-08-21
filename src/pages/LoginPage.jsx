@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../functions/axiosInstance";
 import useUserStore from "../store/useUserStore";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ export default function LoginPage() {
       const errorMsg =
         err.response?.data?.message || "Login failed. Please try again.";
       setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
