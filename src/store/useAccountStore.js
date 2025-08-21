@@ -18,16 +18,16 @@ const useAccountStore = create(
       );
       const { created = [], joined = [] } = data;
       set({
-        createdAccounts: created.map((account) => ({
-          ...account,
-          isCreator: true,
-        })),
-        joinedAccounts: joined.map((account) => ({
-          ...account,
-          isCreator: false,
-        })),
+        createdAccounts: created,
+        joinedAccounts: joined,
       });
     },
+    clearAccounts:()=>{
+      set({
+        createdAccounts:null,
+        joinedAccounts:null
+      })
+    }
   }))
 );
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import axiosInstance from '../functions/axiosInstance'
 import { persist } from 'zustand/middleware';
+import useAccountStore from './useAccountStore';
 
 
 const useUserStore = create(persist((set) => ({
@@ -15,6 +16,7 @@ const useUserStore = create(persist((set) => ({
           withCredentials: true,
         }
       )
+      useAccountStore.getState().clearAccounts();
       set({isLoggedIn:false});
     }
     catch(error) {
@@ -24,8 +26,6 @@ const useUserStore = create(persist((set) => ({
       set({ user: null });
     }
   },
-
-  setUser: (user) => set({ user }),
 
   fetchUserInfo: async () => {
     try {
@@ -38,8 +38,7 @@ const useUserStore = create(persist((set) => ({
           withCredentials: true,
         }
       )
-      set({isLoggedIn:true});
-      return data.user;
+      set({isLoggedIn:true,user:data.user});
     } catch (error) {
       console.error('Error fetching user info:', error)
     }

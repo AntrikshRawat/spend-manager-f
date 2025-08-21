@@ -9,7 +9,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { fetchUserInfo, setUser } = useUserStore();
+  const { fetchUserInfo } = useUserStore();
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -47,8 +47,7 @@ export default function SignUpPage() {
           withCredentials: true,
         }
       );
-      const user = await fetchUserInfo();
-      setUser(user);
+      await fetchUserInfo();
       navigate("/my-accounts");
     } catch (err) {
       const errorMsg =

@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { fetchUserInfo, setUser } = useUserStore();
+  const { fetchUserInfo } = useUserStore();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -36,8 +36,7 @@ export default function LoginPage() {
           withCredentials: true,
         }
       );
-      const user = await fetchUserInfo();
-      setUser(user);
+      await fetchUserInfo();
       navigate("/my-accounts");
     } catch (err) {
       const errorMsg =

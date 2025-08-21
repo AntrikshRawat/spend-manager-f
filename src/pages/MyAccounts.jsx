@@ -87,12 +87,13 @@ export default function MyAccounts() {
   let filteredAccounts = [];
   if (createdAccounts !== null && joinedAccounts !== null) {
     const allAccounts = [...createdAccounts, ...joinedAccounts];
-    filteredAccounts = allAccounts.filter((account) => {
-      if (activeTab === "all") return true;
-      if (activeTab === "created") return account.isCreator;
-      if (activeTab === "joined") return !account.isCreator;
-      return true;
-    });
+    if (activeTab === "all") {
+      filteredAccounts = allAccounts;
+    } else if (activeTab === "created") {
+      filteredAccounts = createdAccounts;
+    } else if (activeTab === "joined") {
+      filteredAccounts = joinedAccounts;
+    }
   }
 
   const handleDeleteAccount = async (accountId) => {

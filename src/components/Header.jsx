@@ -19,7 +19,7 @@ export default function Header() {
   const isMountedRef = useRef(true);
   const logoutTimeoutRef = useRef(null);
   
-  const { user, fetchUserInfo, setUser, logOutUser, isLoggedIn } = useUserStore();
+  const { user, fetchUserInfo, logOutUser, isLoggedIn } = useUserStore();
   const navigate = useNavigate();
 
   // Cleanup on unmount
@@ -91,21 +91,13 @@ export default function Header() {
   useEffect(() => {
     const getUser = async () => {
       if (!isMountedRef.current) return;
-      
-      try {
-        const userData = await fetchUserInfo();
-        if (isMountedRef.current && userData) {
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
+      await fetchUserInfo();
     };
     
     if (!user && isLoggedIn) {
       getUser();
     }
-  }, [fetchUserInfo, setUser, user, isLoggedIn]);
+  }, [fetchUserInfo, user, isLoggedIn]);
 
   useEffect(() => {
     const handleScroll = () => {
