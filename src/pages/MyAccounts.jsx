@@ -112,10 +112,10 @@ export default function MyAccounts() {
       );
       setDeleteMessage("Account deleted successfully!");
       // Animation: wait, then hide overlay and refresh
+      fetchAndUpdateAccounts();
       setTimeout(() => {
         setIsDeleting(false);
         setDeleteMessage("");
-        fetchAndUpdateAccounts();
       }, 1500);
     } catch (error) {
       console.error("Failed to delete account:", error);
