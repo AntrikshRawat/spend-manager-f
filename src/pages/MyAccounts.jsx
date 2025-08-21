@@ -129,7 +129,7 @@ export default function MyAccounts() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && (createdAccounts === null || joinedAccounts === null )) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-10 px-2 sm:px-4">
         {/* Animated background shape */}

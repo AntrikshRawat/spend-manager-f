@@ -5,8 +5,8 @@ import axiosInstance from "../functions/axiosInstance";
 const useAccountStore = create(
   persist(
     (set) => ({
-      createdAccounts: [],
-      joinedAccounts: [],
+      createdAccounts: null,
+      joinedAccounts: null,
 
       fetchAndUpdateAccounts: async () => {
         try {
@@ -21,12 +21,12 @@ const useAccountStore = create(
           set({ createdAccounts: created, joinedAccounts: joined });
         } catch (error) {
           console.error("Error fetching accounts:", error);
-          set({ createdAccounts: [], joinedAccounts: [] });
+          set({ createdAccounts: null, joinedAccounts: null });
         }
       },
 
       clearAccounts: () => {
-        set({ createdAccounts: [], joinedAccounts: [] });
+        set({ createdAccounts: null, joinedAccounts: null });
       },
     }),
     { name: "account-storage" } // localStorage key
