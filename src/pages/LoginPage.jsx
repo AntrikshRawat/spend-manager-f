@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { fetchUserInfo } = useUserStore();
+  const { fetchUserInfo ,setToken} = useUserStore();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -22,7 +22,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await axiosInstance.post(
+      const {data} = await axiosInstance.post(
         `${import.meta.env.VITE_BACKEND_URL}/auth/v1/login`,
         {
           userName: formData.username,
@@ -36,6 +36,9 @@ export default function LoginPage() {
           withCredentials: true,
         }
       );
+      if(data?.authToken) {
+        await setToken(data.authToken);
+      }
       fetchUserInfo().then(() => {
         navigate("/my-accounts");
       });

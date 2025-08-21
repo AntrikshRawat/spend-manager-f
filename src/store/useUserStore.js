@@ -9,7 +9,10 @@ const useUserStore = create(
       user: null,
       isLoggedIn: false,
       logOutDate: null,
-
+      authToken:null,
+      setToken:async(token)=>{
+        set({authToken:token});
+      },
       logOutUser: async () => {
         try {
           await axiosInstance.post(
