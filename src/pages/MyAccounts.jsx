@@ -48,7 +48,7 @@ const AccountSkeleton = () => (
 
 export default function MyAccounts() {
   const navigate = useNavigate();
-  const { user } = useUserStore();
+  const { user  ,isLoggedIn} = useUserStore();
   const { createdAccounts, joinedAccounts, fetchAndUpdateAccounts } =
     useAccountStore();
   const [activeTab, setActiveTab] = useState("all");
@@ -78,11 +78,11 @@ export default function MyAccounts() {
   }, [createdAccounts, joinedAccounts, fetchAndUpdateAccounts]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !isLoggedIn) {
       navigate("/login");
       return;
     }
-  }, [user, navigate]);
+  }, [user, isLoggedIn, navigate]);
 
   let filteredAccounts = [];
   if (createdAccounts !== null && joinedAccounts !== null) {

@@ -91,11 +91,11 @@ export default function Header() {
   useEffect(() => {
     const getUser = async () => {
       if (!isMountedRef.current) return;
-      await fetchUserInfo();
+       await fetchUserInfo();
     };
     
     if (!user && isLoggedIn) {
-      getUser();
+         getUser();
     }
   }, [fetchUserInfo, user, isLoggedIn]);
 

@@ -36,8 +36,9 @@ export default function LoginPage() {
           withCredentials: true,
         }
       );
-      await fetchUserInfo();
-      navigate("/my-accounts");
+      fetchUserInfo().then(() => {
+        navigate("/my-accounts");
+      });
     } catch (err) {
       const errorMsg =
         err.response?.data?.message || "Login failed. Please try again.";
