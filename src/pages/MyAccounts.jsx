@@ -5,11 +5,12 @@ import {
   HiPlus,
   HiUserGroup,
 } from "react-icons/hi";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import useUserStore from "../store/useUserStore";
 import axiosInstance from "../functions/axiosInstance";
 import socket from "../socket";
 import { toast } from "react-toastify";
+import useAccountStore from "../store/useAccountStore";
 
 // Skeleton Loading Component
 const AccountSkeleton = () => (
@@ -48,76 +49,51 @@ const AccountSkeleton = () => (
 export default function MyAccounts() {
   const navigate = useNavigate();
   const { user } = useUserStore();
+  const { createdAccounts, joinedAccounts, fetchAndUpdateAccounts } =
+    useAccountStore();
   const [activeTab, setActiveTab] = useState("all");
-  const [createdAccounts, setCreatedAccounts] = useState([]);
-  const [joinedAccounts, setJoinedAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
-  const fetchAccountsRef = useRef();
   useEffect(() => {
     socket?.on("account-update", () => {
-      fetchAccounts();
+      fetchAndUpdateAccounts();
     });
-  // Clean up
+    // Clean up
     return () => {
       socket?.off("account-update");
     };
   });
-  // Move fetchAccounts outside useEffect for reuse
-  const fetchAccounts = async () => {
-    try {
-      setIsLoading(true);
 
-      const { data } = await axiosInstance.get(
-        `${import.meta.env.VITE_BACKEND_URL}/account/getaccounts`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+  useEffect(() => {
+    const loadAccounts = async () => {
+      if (createdAccounts === null || joinedAccounts === null) {
+        setIsLoading(true);
+      }
 
-      const { created = [], joined = [] } = data;
-
-      const updatedCreatedAccounts = created.map((account) => ({
-        ...account,
-        isCreator: true,
-      }));
-
-      const updatedJoinedAccounts = joined.map((account) => ({
-        ...account,
-        isCreator: false,
-      }));
-
-      setCreatedAccounts(updatedCreatedAccounts);
-      setJoinedAccounts(updatedJoinedAccounts);
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
-      toast.error("Failed to fetch accounts. Please try again.");
-    } finally {
+      await fetchAndUpdateAccounts();
       setIsLoading(false);
-    }
-  };
-  fetchAccountsRef.current = fetchAccounts;
+    };
+    loadAccounts();
+  }, [createdAccounts, joinedAccounts, fetchAndUpdateAccounts]);
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
       return;
     }
-    fetchAccounts();
   }, [user, navigate]);
 
-  const allAccounts = [...createdAccounts, ...joinedAccounts];
-
-  const filteredAccounts = allAccounts.filter((account) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "created") return account.isCreator;
-    if (activeTab === "joined") return !account.isCreator;
-    return true;
-  });
+  let filteredAccounts = [];
+  if (createdAccounts !== null && joinedAccounts !== null) {
+    const allAccounts = [...createdAccounts, ...joinedAccounts];
+    filteredAccounts = allAccounts.filter((account) => {
+      if (activeTab === "all") return true;
+      if (activeTab === "created") return account.isCreator;
+      if (activeTab === "joined") return !account.isCreator;
+      return true;
+    });
+  }
 
   const handleDeleteAccount = async (accountId) => {
     const confirmed = window.confirm(
@@ -135,14 +111,11 @@ export default function MyAccounts() {
         }
       );
       setDeleteMessage("Account deleted successfully!");
-      // Remove the deleted account from the UI
-      setCreatedAccounts((prev) => prev.filter((acc) => acc._id !== accountId));
-      setJoinedAccounts((prev) => prev.filter((acc) => acc._id !== accountId));
       // Animation: wait, then hide overlay and refresh
       setTimeout(() => {
         setIsDeleting(false);
         setDeleteMessage("");
-        if (fetchAccountsRef.current) fetchAccountsRef.current();
+        fetchAndUpdateAccounts();
       }, 1500);
     } catch (error) {
       console.error("Failed to delete account:", error);
@@ -155,7 +128,7 @@ export default function MyAccounts() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && (createdAccounts === null || joinedAccounts === null)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-10 px-2 sm:px-4">
         {/* Animated background shape */}
