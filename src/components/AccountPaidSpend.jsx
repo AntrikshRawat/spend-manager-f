@@ -12,7 +12,6 @@ const AccountPaidSpend = ({ accountMembers = [], accountId ,refreshKey}) => {
     const fetchPaidSpend = async () => {
       if (!accountId || !accountMembers.length) return;
       setLoading(true);
-      setError('');
       try {
         const { data } = await axiosInstance.post(
           `${import.meta.env.VITE_BACKEND_URL}/payment/paidspend`,
@@ -28,13 +27,13 @@ const AccountPaidSpend = ({ accountMembers = [], accountId ,refreshKey}) => {
       } catch (err) {
         const errorMsg = err.response?.data?.message || 'Failed to fetch summary.';
         setError(errorMsg);
-        toast.error(errorMsg);
+        toast.error(error);
       } finally {
         setLoading(false);
       }
     };
     fetchPaidSpend();
-  }, [accountId, accountMembers,refreshKey]);
+  }, [accountId, accountMembers,refreshKey,error]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -46,8 +45,6 @@ const AccountPaidSpend = ({ accountMembers = [], accountId ,refreshKey}) => {
         <div className="p-6">
           {loading ? (
             <div className="text-center text-gray-500">Loading...</div>
-          ) : error ? (
-            <div className="text-center text-red-500">{error}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {accountMembers.map((member) => {
@@ -83,8 +80,6 @@ const AccountPaidSpend = ({ accountMembers = [], accountId ,refreshKey}) => {
         <div className="p-6">
           {loading ? (
             <div className="text-center text-gray-500">Loading...</div>
-          ) : error ? (
-            <div className="text-center text-red-500">{error}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {accountMembers.map((member) => {

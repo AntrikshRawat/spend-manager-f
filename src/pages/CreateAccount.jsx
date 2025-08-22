@@ -8,7 +8,7 @@ import { toast } from 'react-toastify'
 
 const createAccount = async (accountName, members) => {
   try{
-    const response = await axiosInstance.post(`${import.meta.env.VITE_BACKEND_URL}/account/create`, {
+    const {data} = await axiosInstance.post(`${import.meta.env.VITE_BACKEND_URL}/account/create`, {
       acName: accountName,
       acMembers: members
     },{
@@ -17,11 +17,10 @@ const createAccount = async (accountName, members) => {
       },
       withCredentials: true,
     });
-    return response.data;
+    toast.success(data?.message);
   }
   catch(err) {
     toast.error(err.response.data?.message?.[0]?.msg || err.response.data?.message || 'Failed to create account.');
-    return err.response.data;
   }
 };
 
@@ -118,8 +117,7 @@ export default function CreateAccount() {
     setError('');
     setCreateLoading(true);
     try {
-      const data = await createAccount(accountName,extractMemberIds(members)); 
-      toast.success(data.message[0].msg ||data.message);
+      await createAccount(accountName,extractMemberIds(members)); 
       navigate('/my-accounts');
     }catch(err){
      toast.error(err.message[0].msg ||err.message);

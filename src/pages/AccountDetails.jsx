@@ -20,6 +20,7 @@ const AccountDetails = () => {
   const navigate = useNavigate();
   const [transactionsRefreshKey, setTransactionsRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const {user} = useUserStore();
   const [isAISummaryLoading, setIsAISummaryLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
@@ -28,21 +29,24 @@ const AccountDetails = () => {
   const fetchAccountDetails = async () => {
     try {
       setAccount({});
+      setIsFetching(true);
       const {data} = await axiosInstance.post(`${import.meta.env.VITE_BACKEND_URL}/account/details`,{
         acId
       },{
         withCredentials: true,
       });
       if (!data || !data._id) {
-        toast.error('No account found');
+        toast.error('No account found!');
         navigate('/my-accounts');
         return;
       }
       setAccount(data);
-      fetchMembersName(data.accountMembers);
+      await fetchMembersName(data.accountMembers);
     } catch {
       toast.error('No account found');
       navigate('/my-accounts');
+    } finally {
+      setIsFetching(false);
     }
   }
   const fetchMembersName=async(userIds)=>{
@@ -51,7 +55,7 @@ const AccountDetails = () => {
       },{
         withCredentials: true,
       });
-      setMembers([])
+    setMembers([]);
     for(let i=0;i<data.length;i++) {
       setMembers((prev)=>{
         const list = [...prev];
@@ -150,21 +154,21 @@ const AccountDetails = () => {
             <HiArrowLeft className="w-5 h-5 mr-2" />
             Back to Accounts
           </Link>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{account.accountName}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">{isFetching?account?.accountName:"-"}</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl shadow-md p-4">
               <p className="text-sm text-gray-500 mb-1">Total Spend</p>
               <p className="text-2xl font-bold" >
-                ₹{account.totalSpend}
+                ₹{isFetching?account.totalSpend:"-"}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-md p-4">
               <p className="text-sm text-gray-500 mb-1">Members</p>
-              <p className="text-2xl font-bold text-gray-800">{account.accountMembers?.length}</p>
+              <p className="text-2xl font-bold text-gray-800">{isFetching?account.accountMembers?.length:"-"}</p>
             </div>
             <div className="bg-white rounded-xl shadow-md p-4">
               <p className="text-sm text-gray-500 mb-1">Total Transactions</p>
-              <p className="text-2xl font-bold text-gray-800">{account.totalTransaction ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-800">{isFetching?account.totalTransaction:"-"}</p>
             </div>
           </div>
         </div>

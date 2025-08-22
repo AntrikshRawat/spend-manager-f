@@ -36,6 +36,7 @@ export default function LoginPage() {
           withCredentials: true,
         }
       );
+      toast.success(data?.message);
       if(data?.authToken) {
         await setToken(data.authToken);
       }

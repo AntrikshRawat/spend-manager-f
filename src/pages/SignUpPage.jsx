@@ -9,7 +9,7 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { fetchUserInfo ,setToken} = useUserStore();
+  const { fetchUserInfo, setToken } = useUserStore();
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -31,7 +31,7 @@ export default function SignUpPage() {
 
     setIsLoading(true);
     try {
-      const {data}=await axiosInstance.post(
+      const { data } = await axiosInstance.post(
         `${import.meta.env.VITE_BACKEND_URL}/auth/v1/register`,
         {
           firstName: formData.firstName,
@@ -47,7 +47,8 @@ export default function SignUpPage() {
           withCredentials: true,
         }
       );
-      if(data?.authToken) {
+      toast.success(data?.message);
+      if (data?.authToken) {
         await setToken(data.authToken);
       }
       fetchUserInfo().then(() => {
