@@ -154,21 +154,21 @@ const AccountDetails = () => {
             <HiArrowLeft className="w-5 h-5 mr-2" />
             Back to Accounts
           </Link>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{isFetching?account?.accountName:"-"}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">{!isFetching?account?.accountName:"-"}</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl shadow-md p-4">
               <p className="text-sm text-gray-500 mb-1">Total Spend</p>
               <p className="text-2xl font-bold" >
-                ₹{isFetching?account.totalSpend:"-"}
+                ₹{!isFetching?account.totalSpend:"-"}
               </p>
             </div>
             <div className="bg-white rounded-xl shadow-md p-4">
               <p className="text-sm text-gray-500 mb-1">Members</p>
-              <p className="text-2xl font-bold text-gray-800">{isFetching?account.accountMembers?.length:"-"}</p>
+              <p className="text-2xl font-bold text-gray-800">{!isFetching?account.accountMembers?.length:"-"}</p>
             </div>
             <div className="bg-white rounded-xl shadow-md p-4">
               <p className="text-sm text-gray-500 mb-1">Total Transactions</p>
-              <p className="text-2xl font-bold text-gray-800">{isFetching?account.totalTransaction:"-"}</p>
+              <p className="text-2xl font-bold text-gray-800">{!isFetching?account.totalTransaction:"-"}</p>
             </div>
           </div>
         </div>
