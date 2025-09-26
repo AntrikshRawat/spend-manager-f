@@ -222,6 +222,7 @@ const AccountDetails = () => {
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
         <button
           onClick={handleAISummarizer}
+          disabled={isFetching}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 active:scale-95"
         >
           <HiSparkles className="w-5 h-5" />

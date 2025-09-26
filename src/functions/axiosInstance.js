@@ -14,18 +14,24 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
-// Add a response interceptor
 axiosInstance.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     if (error.response && error.response.status === 401) {
-      // Logout user if 401 Unauthorized
+      const requestUrl = error.config?.url;
+
+      // 🛑 Skip logout for login/register endpoints
+      if (requestUrl.includes('/login') || requestUrl.includes('/register')) {
+        return Promise.reject(error);
+      }
+
+      // ✅ For other requests, log out the user
       const { logOutUser } = useUserStore.getState();
       await logOutUser();
     }
+
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance; 
+export default axiosInstance;
