@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 
 export default function ReportViewer({ text }) {
   return (
-    <div className="max-w-3xl mx-auto bg-white p-8 rounded-md">
+    <div className="max-w-3xl mx-auto bg-white p-4 rounded-md">
       <ReactMarkdown
         children={text}
         components={{

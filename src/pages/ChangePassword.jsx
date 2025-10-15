@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Footer from '../components/Footer';
 import axiosInstance from '../functions/axiosInstance';
@@ -35,7 +35,7 @@ export default function ChangePassword() {
     try {
       setIsSubmitting(true);
        await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/userAccount/updatepass`,
+        `${import.meta.env.VITE_BACKEND_URL}/userAccount/updatepassword`,
         {
           oldPassword: form.currentPassword,
           newPassword: form.newPassword,
@@ -43,7 +43,11 @@ export default function ChangePassword() {
         { withCredentials: true }
       );
       toast.success('Password updated successfully');
-      navigate('/profile');
+      setForm({
+      currentPassword:"",
+      newPassword:"",
+      confirmNewPassword:""
+      })
     } catch (err) {
       const message = err?.response?.data?.message || 'Failed to update password';
       toast.error(message);
@@ -112,6 +116,14 @@ export default function ChangePassword() {
               >
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
+            </div>
+            <div className="text-center mt-4">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-200"
+              >
+                Forgot Password?
+              </Link>
             </div>
           </form>
         </div>

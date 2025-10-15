@@ -339,7 +339,7 @@ export default function Header() {
                   {isUserMenuOpen && (
                     <div className="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-100">
-                        <h3 className="text-sm font-semibold text-gray-800">User Profile</h3>
+                        <h3 className="text-sm font-semibold text-gray-800">Account Settings</h3>
                       </div>
                       <div className="px-4 py-3">
                         <p className="text-sm text-gray-600">
