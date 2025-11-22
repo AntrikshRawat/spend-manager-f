@@ -4,7 +4,6 @@ import { HiBell } from "react-icons/hi";
 import useUserStore from "../store/useUserStore";
 import socket from "../socket";
 import { toast } from "react-toastify";
-import { FaUser } from "react-icons/fa";
 import axiosInstance from "../functions/axiosInstance";
 
 export default function Header() {
@@ -35,7 +34,7 @@ export default function Header() {
   // Socket handlers with safety checks
   const handleConnect = useCallback(() => {
     if (socket && user?._id && isMountedRef.current) {
-      socket.emit("join_room", user._id);
+      socket.emit("join_room", user?._id);
     }
   }, [user?._id]);
 

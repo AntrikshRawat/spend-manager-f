@@ -35,13 +35,15 @@ const AccountDetails = () => {
       },{
         withCredentials: true,
       });
-      if (!data || !data._id) {
+      if (!data || !data?._id) {
         toast.error('No account found!');
         navigate('/my-accounts');
         return;
       }
       setAccount(data);
-      await fetchMembersName(data.accountMembers);
+      if(data.accountType === "shared") {
+          await fetchMembersName(data.accountMembers);
+      }
     } catch {
       toast.error('No account found');
       navigate('/my-accounts');
@@ -91,7 +93,7 @@ const AccountDetails = () => {
         `${import.meta.env.VITE_BACKEND_URL}/payment/clear`,
         {},
         {
-          params: { accountId: account._id },
+          params: { accountId: account?._id },
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
         }
@@ -118,7 +120,7 @@ const AccountDetails = () => {
       const { data } = await axiosInstance.post(
         `${import.meta.env.VITE_BACKEND_URL}/accountsummary`,
         {
-          accountId: account._id
+          accountId: account?._id
         },
         {
           withCredentials: true,
@@ -173,7 +175,9 @@ const AccountDetails = () => {
           </div>
         </div>
 
-        <AccountPaidSpend accountMembers={members.map(member=>member.name)} accountId={account._id} refreshKey={transactionsRefreshKey}/>
+        {account.accountType === 'shared' && (
+          <AccountPaidSpend accountMembers={members.map(member=>member.name)} accountId={account?._id} refreshKey={transactionsRefreshKey}/>
+        )}
 
         {/* Transaction Section */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -197,7 +201,7 @@ const AccountDetails = () => {
                   <HiPlus className="w-5 h-5" />
                   Add Transaction
                 </button>
-{ account.accountHolder === user._id && <button
+{ account.accountHolder === user?._id && <button
                   onClick={handleClearTransactions}
                   disabled={account.totalTransaction === 0 ||loading}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition disabled:opacity-50 w-full sm:w-auto"
@@ -207,12 +211,14 @@ const AccountDetails = () => {
               </div>
             </div>
             <TransactionsHistory
-            accountId={account._id}
+            accountId={account?._id}
             refreshKey={transactionsRefreshKey}
             newDeletion={()=>{
               setTransactionsRefreshKey(k => k + 1);
               fetchAccountDetails();
             }}
+            accountType={account.accountType}
+            accountMembers={members.map(member=>member.name)}
             />
           </div>
         </div>
@@ -302,7 +308,7 @@ const AccountDetails = () => {
       <AddTransactionPopup
         isOpen={isAddTransactionOpen}
         accountMembers={members.map(member=>member.name)}
-        accountId={account._id}
+        accountId={account?._id}
         onClose={(value) => {
           setIsAddTransactionOpen(false);
           if(value) {
@@ -311,6 +317,7 @@ const AccountDetails = () => {
           fetchAccountDetails();
           }
         }}
+        accountType={account.accountType}
       />
     </div>
   );

@@ -4,7 +4,7 @@ import useUserStore from '../store/useUserStore';
 import axiosInstance from '../functions/axiosInstance';
 import { toast } from 'react-toastify';
 
-const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId }) => {
+const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,accountType}) => {
   const { user } = useUserStore();
   const [formData, setFormData] = useState({
     amount: '',
@@ -17,13 +17,17 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const total = memberAmounts.reduce((sum, val) => sum + Number(val || 0), 0);
-    const transactionAmount = Number(formData.amount);
+    
+    if (accountType === 'shared') {
+      const total = memberAmounts.reduce((sum, val) => sum + Number(val || 0), 0);
+      const transactionAmount = Number(formData.amount);
 
-    if (total !== transactionAmount) {
-      setError(`Total of member amounts (₹${total}) must equal the transaction amount (₹${transactionAmount})`);
-      return;
+      if (total !== transactionAmount) {
+        setError(`Total of member amounts (₹${total}) must equal the transaction amount (₹${transactionAmount})`);
+        return;
+      }
     }
+    
     setError('');
     setLoading(true);
     try {
@@ -34,7 +38,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId }
           where: formData.where,
           paidBy: user.userName,
           amount: formData.amount,
-          memberExpenses: memberAmounts,
+          memberExpenses: accountType === 'shared' ?          memberAmounts : [formData.amount],
         },
         {
           params: {
@@ -52,7 +56,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId }
         where: '',
       })
     } catch (err) {
-      const errorMsg = err.response?.data?.message?.[0] || err.response?.data?.message || 'Failed to add transaction.';
+      const errorMsg = err.response?.data?.message?.[0]?.msg || err.response?.data?.message || 'Failed to add transaction.';
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -180,45 +184,47 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId }
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-gray-700">Member Amounts</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="equal-split"
-                    checked={equalSplit}
-                    onChange={handleEqualSplitChange}
-                    className="accent-blue-600"
-                  />
-                  <label htmlFor="equal-split" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
-                    Split equally
-                  </label>
+            {accountType === 'shared' && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-gray-700">Member Amounts</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="equal-split"
+                      checked={equalSplit}
+                      onChange={handleEqualSplitChange}
+                      className="accent-blue-600"
+                    />
+                    <label htmlFor="equal-split" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                      Split equally
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-1 p-3 rounded-xl bg-gray-50">
+                  {accountMembers.map((member, idx) => (
+                    <div key={member} className="flex items-center gap-3">
+                      <span className="flex-1 text-gray-700 font-medium">{member}</span>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={memberAmounts[idx]}
+                          onChange={e => handleMemberAmountChange(idx, e.target.value)}
+                          className="w-24 pl-8 pr-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
+                          placeholder="0"
+                          disabled={equalSplit}
+                          required
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="space-y-3 border-1 p-3 rounded-xl bg-gray-50">
-                {accountMembers.map((member, idx) => (
-                  <div key={member} className="flex items-center gap-3">
-                    <span className="flex-1 text-gray-700 font-medium">{member}</span>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={memberAmounts[idx]}
-                        onChange={e => handleMemberAmountChange(idx, e.target.value)}
-                        className="w-24 pl-8 pr-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
-                        placeholder="0"
-                        disabled={equalSplit}
-                        required
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
 
             {error && <div className="text-red-600 text-sm font-medium text-center">{error}</div>}
 

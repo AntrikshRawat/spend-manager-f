@@ -27,7 +27,7 @@ const TransactionSkeleton = () => (
   </div>
 );
 
-const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion }) => {
+const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType, accountMembers = [] }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -91,12 +91,12 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion }) => {
     return (
       <div className="mt-6 bg-white rounded-xl shadow p-4">
         {/* Header skeleton */}
-        <div className="hidden sm:grid grid-cols-6 gap-4 px-2 py-2 bg-gray-50 rounded-lg font-semibold text-gray-600 text-sm mb-2">
-          <div>Paid By</div>
+        <div className={`hidden sm:grid ${accountType === 'personal' ? 'grid-cols-4' : 'grid-cols-6'} gap-4 px-2 py-2 bg-gray-50 rounded-lg font-semibold text-gray-600 text-sm mb-2`}>
+          {accountType !== 'personal' && <div>Paid By</div>}
           <div>Amount</div>
           <div>Where</div>
           <div>Date</div>
-          <div>Member Expenses</div>
+          {accountType !== 'personal' && <div>Member Expenses</div>}
           <div>Action</div>
         </div>
         <ul className="divide-y divide-gray-100">
@@ -111,47 +111,53 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion }) => {
 
   return (
     <div className="mt-6 bg-white rounded-xl shadow p-4">
-      <div className="hidden sm:grid grid-cols-6 gap-4 px-2 py-2 bg-gray-50 rounded-lg font-semibold text-gray-600 text-sm mb-2">
-        <div>Paid By</div>
+      <div className={`hidden sm:grid ${accountType === 'personal' ? 'grid-cols-4' : 'grid-cols-6'} gap-4 px-2 py-2 bg-gray-50 rounded-lg font-semibold text-gray-600 text-sm mb-2`}>
+        {accountType !== 'personal' && <div>Paid By</div>}
         <div>Amount</div>
         <div>Where</div>
-        <div>Date</div>
-        <div>Member Expenses</div>
+        <div>Date & Time</div>
+        {accountType !== 'personal' && <div>Member Expenses</div>}
         <div>Action</div>
       </div>
       <ul className="divide-y divide-gray-100">
         {transactions.map((tx, idx) => (
           <li
             key={tx._id || idx}
-            className="py-3 px-2 flex flex-col sm:grid sm:grid-cols-6 gap-2 sm:items-center hover:bg-gray-50 rounded-lg transition"
+            className={`py-3 px-2 flex flex-col sm:grid ${accountType === 'personal' ? 'sm:grid-cols-4' : 'sm:grid-cols-6'} gap-2 sm:items-center hover:bg-gray-50 rounded-lg transition`}
           >
-            <div className="font-semibold text-blue-700 w-full text-center sm:text-left">{tx.paidBy}</div>
+            {accountType !== 'personal' && <div className="font-semibold text-blue-700 w-full text-center sm:text-left">{tx.paidBy}</div>}
             <div className="text-green-700 font-bold w-full text-center sm:text-left">₹{tx.amount}</div>
             <div className="text-gray-700 w-full text-center sm:text-left">{tx.where}</div>
             <div className="text-xs text-gray-500 w-full text-center sm:text-left">
               {tx.date ? new Date(tx.date).toLocaleString() : ''}
             </div>
             {/* Member Expenses Section - Right Side */}
-            <div className="w-full text-center sm:text-left">
-              {tx.memberExpenses && tx.memberExpenses.length > 0 ? (
-                <div className="text-xs space-y-1">
-                  {tx.memberExpenses.map((expense, expenseIdx) => (
-                    <div key={expenseIdx} className="flex justify-between items-center bg-blue-50 px-2 py-1 rounded-md">
-                      <span className="text-blue-700 font-medium">M{expenseIdx + 1}</span>
-                      <span className="text-blue-900 font-semibold">₹{expense}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span className="text-gray-400 text-xs italic">No expenses</span>
-              )}
-            </div>
+            {accountType !== 'personal' && (
+              <div className="w-full text-center sm:text-left">
+                {tx.memberExpenses && tx.memberExpenses.length > 0 ? (
+                  <div className="text-xs space-y-1">
+                    {tx.memberExpenses.map((expense, expenseIdx) => (
+                      <div key={expenseIdx} className="flex justify-between items-center bg-blue-50 px-2 py-1 rounded-md">
+                        <span className="text-blue-700 font-medium">
+                          {accountType === 'shared' && accountMembers[expenseIdx] 
+                            ? accountMembers[expenseIdx] 
+                            : `M${expenseIdx + 1}`}
+                        </span>
+                        <span className="text-blue-900 font-semibold">₹{expense}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-gray-400 text-xs italic">No expenses</span>
+                )}
+              </div>
+            )}
             {/* Action Button - Responsive */}
             <div className="flex justify-center sm:justify-start w-full mt-2 sm:mt-0">
               <button
                 onClick={() => handleDelete(tx._id,tx.amount)}
                 className="p-3 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-50"
-                disabled={deletingId === tx._id || user.userName !== tx.paidBy}
+                disabled={deletingId === tx._id || user?.userName !== tx.paidBy}
                 title="Delete Transaction"
                 style={{ minWidth: 40, minHeight: 40 }}
               >

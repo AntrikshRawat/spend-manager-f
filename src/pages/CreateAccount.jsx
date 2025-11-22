@@ -6,11 +6,12 @@ import axiosInstance from '../functions/axiosInstance'
 import useUserStore from '../store/useUserStore'
 import { toast } from 'react-toastify'
 
-const createAccount = async (accountName, members) => {
+const createAccount = async (accountName, members, accountType) => {
   try{
     const {data} = await axiosInstance.post(`${import.meta.env.VITE_BACKEND_URL}/account/create`, {
       acName: accountName,
-      acMembers: members
+      acMembers: members,
+      accountType
     },{
       headers: {
         'Content-Type': 'application/json',
@@ -35,6 +36,7 @@ export default function CreateAccount() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [validUsernames, setValidUsernames] = useState(new Set())
+  const [accountType, setAccountType] = useState('shared')
 
   const filterList = (userlist, memberlist) => {
     return userlist.filter(item =>
@@ -104,25 +106,40 @@ export default function CreateAccount() {
       setError('Account name is required.')
       return
     }
-    if (members.some(m => typeof m.userName !== 'string' || !m.userName.trim())) {
-      setError('All member fields must be filled.');
-      return;
-    }    
-    // Check if all members have valid 
-    const invalidMembers = members.filter(member => !validUsernames.has(member.userName))
-    if (invalidMembers.length > 0) {
-      setError('Please select valid usernames from the dropdown list.')
-      return;
-    }
-    setError('');
-    setCreateLoading(true);
-    try {
-      await createAccount(accountName,extractMemberIds(members)); 
-      navigate('/my-accounts');
-    }catch(err){
-     toast.error(err.message[0].msg ||err.message);
-    } finally {
-      setCreateLoading(false);
+    
+    if (accountType === 'shared') {
+      if (members.some(m => typeof m.userName !== 'string' || !m.userName.trim())) {
+        setError('All member fields must be filled.');
+        return;
+      }    
+      // Check if all members have valid 
+      const invalidMembers = members.filter(member => !validUsernames.has(member.userName))
+      if (invalidMembers.length > 0) {
+        setError('Please select valid usernames from the dropdown list.')
+        return;
+      }
+      setError('');
+      setCreateLoading(true);
+      try {
+        await createAccount(accountName, extractMemberIds(members), accountType); 
+        navigate('/my-accounts');
+      }catch(err){
+       toast.error(err.message[0].msg ||err.message);
+      } finally {
+        setCreateLoading(false);
+      }
+    } else {
+      // Personal account logic
+      setError('');
+      setCreateLoading(true);
+      try {
+        await createAccount(accountName, [], accountType);
+        navigate('/my-accounts');
+      } catch(err) {
+        toast.error(err.message[0].msg || err.message);
+      } finally {
+        setCreateLoading(false);
+      }
     }
   }
 
@@ -133,6 +150,33 @@ export default function CreateAccount() {
         className="w-full max-w-lg bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-8 flex flex-col gap-6"
       >
         <h1 className="text-2xl font-extrabold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">Create New Account</h1>
+        
+        {/* Account Type Tabs */}
+        <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setAccountType('shared')}
+            className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
+              accountType === 'shared'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                : 'bg-transparent text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Shared Account
+          </button>
+          <button
+            type="button"
+            onClick={() => setAccountType('personal')}
+            className={`flex-1 py-2 px-4 rounded-md font-semibold transition-all ${
+              accountType === 'personal'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                : 'bg-transparent text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Personal Account
+          </button>
+        </div>
+
         {error && <div className="text-red-500 text-center font-semibold">{error}</div>}
         <div>
           <label className="block text-gray-700 font-semibold mb-1">Account Name</label>
@@ -145,9 +189,10 @@ export default function CreateAccount() {
             required
           />
         </div>
-        <div>
-          <label className="block text-gray-700 font-semibold mb-1">Add Members (up to 6)</label>
-          <div className="flex flex-col gap-3">
+        {accountType === 'shared' && (
+          <div>
+            <label className="block text-gray-700 font-semibold mb-1">Add Members (up to 6)</label>
+            <div className="flex flex-col gap-3">
             {members.map((member, idx) => (
               <div key={idx} className="flex gap-2 items-center relative">
                 <div className="flex-1 relative">
@@ -203,8 +248,9 @@ export default function CreateAccount() {
                 )}
               </div>
             ))}
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex gap-4 mt-2">
           <Link
             to="/my-accounts"

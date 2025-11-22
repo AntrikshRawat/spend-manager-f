@@ -309,20 +309,32 @@ export default function MyAccounts() {
             </div>
           </div>
 
+{/* Empty Grid Message for 0 joined accounts */}
+<div className={`text-center m-2 text-2xl ${(activeTab==="joined" && filteredAccounts?.length === 0)?"":"hidden"}`}>
+  <h1>No Joined Accounts Found</h1>
+</div>
           {/* Accounts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredAccounts.map((account) => (
               <Link
                 key={account._id}
                 to={`/my-accounts/${account._id}`}
-                className="group relative bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="group relative bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
+                {/* Account Type Tag */}
+                <div className={`absolute -top-3 -right-1 px-3 py-1 rounded-full text-xs font-semibold shadow-md z-10 ${
+                  account.accountType === 'personal' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-yellow-500 text-white'
+                }`}>
+                  {account.accountType === 'personal' ? 'Personal' : 'Shared'}
+                </div>
                 <div
                   className={`absolute inset-0 bg-gradient-to-r opacity-5 group-hover:opacity-10 transition-opacity duration-300`}
                 />
                 <div className="relative p-6">
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">
+                    <h3 className="text-xl font-bold text-gray-800 pr-20">
                       {account.accountName}
                     </h3>
                     <div className="flex gap-2">
