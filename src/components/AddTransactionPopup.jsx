@@ -67,7 +67,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
   const handleChange = (e) => {
     let { name, value } = e.target;
     if (name === "amount") {
-      value = value > 10000 ? 10000 : value;
+      value = value > 100000 ? 100000 : value;
     }
     setFormData(prev => ({
       ...prev,
@@ -164,7 +164,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
                 value={formData.amount}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0-10,000"
+                placeholder="0-100,000"
                 required
               />
             </div>

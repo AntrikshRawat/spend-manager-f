@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axiosInstance from '../functions/axiosInstance';
+import formatDate from '../functions/formatDate';
 import { useNavigate } from 'react-router-dom';
 
 export default function Notifications() {
@@ -47,7 +48,7 @@ export default function Notifications() {
           <div key={idx} className="py-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-gray-500 font-semibold">From: {note.from}</span>
-              {note.timestamp && <span className="text-xs text-gray-400">{new Date(note.timestamp).toLocaleString()}</span>}
+              {note.timestamp && <span className="text-xs text-gray-400">{formatDate(note.timestamp)}</span>}
             </div>
             <p className="text-gray-800">{note.message}</p>
           </div>

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HiBell } from "react-icons/hi";
 import useUserStore from "../store/useUserStore";
+import formatDate from "../functions/formatDate";
 import socket from "../socket";
 import { toast } from "react-toastify";
 import axiosInstance from "../functions/axiosInstance";
@@ -226,7 +227,7 @@ export default function Header() {
                   </span>
                   {note.timestamp && (
                     <span className="text-xs text-gray-400">
-                      {new Date(note.timestamp).toLocaleString()}
+                      {formatDate(note.timestamp)}
                     </span>
                   )}
                 </div>

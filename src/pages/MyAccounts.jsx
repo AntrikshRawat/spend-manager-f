@@ -8,9 +8,31 @@ import {
 import { useEffect, useState } from "react";
 import useUserStore from "../store/useUserStore";
 import axiosInstance from "../functions/axiosInstance";
+import formatDate from "../functions/formatDate";
 import socket from "../socket";
 import { toast } from "react-toastify";
 import useAccountStore from "../store/useAccountStore";
+
+// Function to fetch top 5 transactions for an account
+const fetchTop5Transactions = async (accountId) => {
+  try {
+    const { data } = await axiosInstance.get(
+      `${import.meta.env.VITE_BACKEND_URL}/payment`,
+      {
+        params: {
+          accountId
+        },
+        headers: { 'Content-Type': 'application/json' },
+        withCredentials: true,
+      }
+    );
+    // Return top 5 transactions
+    return (data || []).slice(0, 5);
+  } catch (err) {
+    console.error('Failed to fetch transactions:', err);
+    return [];
+  }
+};
 
 // Skeleton Loading Component
 const AccountSkeleton = () => (
@@ -55,6 +77,9 @@ export default function MyAccounts() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
+  const [previewAccount, setPreviewAccount] = useState(null);
+  const [previewTransactions, setPreviewTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   useEffect(() => {
     socket?.on("account-update", () => {
       fetchAndUpdateAccounts();
@@ -83,6 +108,20 @@ export default function MyAccounts() {
       return;
     }
   }, [user, isLoggedIn, navigate]);
+
+  useEffect(() => {
+    const loadPreviewTransactions = async () => {
+      if (previewAccount) {
+        setLoadingTransactions(true);
+        const transactions = await fetchTop5Transactions(previewAccount._id);
+        setPreviewTransactions(transactions);
+        setLoadingTransactions(false);
+      } else {
+        setPreviewTransactions([]);
+      }
+    };
+    loadPreviewTransactions();
+  }, [previewAccount]);
 
   let filteredAccounts = [];
   if (createdAccounts !== null && joinedAccounts !== null) {
@@ -341,7 +380,7 @@ export default function MyAccounts() {
                       <button
                         onClick={(e) => {
                           e.preventDefault();
-                          // Handle view action
+                          setPreviewAccount(account);
                         }}
                         className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
                       >
@@ -407,6 +446,67 @@ export default function MyAccounts() {
           </div>
         </div>
       </div>
+
+      {/* Preview Popup */}
+      {previewAccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">{previewAccount.accountName}</h2>
+              <button
+                onClick={() => setPreviewAccount(null)}
+                className="text-white hover:text-gray-200 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Transactions</h3>
+              {loadingTransactions ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+                </div>
+              ) : previewTransactions.length > 0 ? (
+                <div className="space-y-3">
+                  {previewTransactions.map((tx, idx) => (
+                    <div key={tx._id || idx} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold text-gray-800">{tx.where}</p>
+                          <p className="text-sm text-gray-500">Paid by: {tx.paidBy}</p>
+                        </div>
+                        <p className="text-lg font-bold text-green-600">₹{tx.amount}</p>
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {formatDate(tx.date)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <p>No transactions found</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 p-4 bg-gray-50">
+              <button
+                onClick={() => setPreviewAccount(null)}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

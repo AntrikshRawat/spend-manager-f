@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axiosInstance from '../functions/axiosInstance';
+import formatDate from '../functions/formatDate';
 import { HiTrash } from 'react-icons/hi';
 import useUserStore from '../store/useUserStore';
 import { toast } from 'react-toastify';
@@ -129,7 +130,7 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
             <div className="text-green-700 font-bold w-full text-center sm:text-left">₹{tx.amount}</div>
             <div className="text-gray-700 w-full text-center sm:text-left">{tx.where}</div>
             <div className="text-xs text-gray-500 w-full text-center sm:text-left">
-              {tx.date ? new Date(tx.date).toLocaleString() : ''}
+              {formatDate(tx.date)}
             </div>
             {/* Member Expenses Section - Right Side */}
             {accountType !== 'personal' && (

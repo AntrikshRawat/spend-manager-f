@@ -24,7 +24,7 @@ export default function Footer() {
     <footer className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8 px-4 ">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex flex-col items-center md:items-start">
-          <span className="font-bold text-lg tracking-wide">Money Spending Manager</span>
+          <span className="font-bold text-lg tracking-wide">Spend Manager</span>
           <span className="text-sm text-blue-100">&copy; {new Date().getFullYear()} All rights reserved.</span>
         </div>
         <div className="flex gap-6 mt-4 md:mt-0">
