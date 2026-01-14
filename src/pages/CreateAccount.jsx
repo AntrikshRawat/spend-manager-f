@@ -30,7 +30,7 @@ export default function CreateAccount() {
   const [members, setMembers] = useState([{id:'',userName:''}])
   const [error, setError] = useState('')
   const [filteredUsers, setFilteredUsers] = useState([])
-  const {user} = useUserStore();
+  const user = useUserStore(u=>u.user);
   const navigate = useNavigate();
   const [activeInputIndex, setActiveInputIndex] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
@@ -122,7 +122,11 @@ export default function CreateAccount() {
       setCreateLoading(true);
       try {
         await createAccount(accountName, extractMemberIds(members), accountType); 
-        navigate('/my-accounts');
+        navigate('/my-accounts',{
+          state:{
+            refresh:true
+          }
+        });
       }catch(err){
        toast.error(err.message[0].msg ||err.message);
       } finally {

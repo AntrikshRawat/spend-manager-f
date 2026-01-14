@@ -8,7 +8,7 @@ export default function Footer() {
   const [rating, setRating] = useState(0)
   const [hover, setHover] = useState(0)
   const [submitted, setSubmitted] = useState(false)
-  const { user } = useUserStore();
+  const user = useUserStore(u=>u.user);
 
   const handleSubmit = (e) => {
     e.preventDefault()

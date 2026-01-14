@@ -113,7 +113,7 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default function App() {
-  const { user } = useUserStore();
+  const user = useUserStore(u=>u.user);
   useEffect(() => {
     if (user && user._id) {
       subscribeUser();

@@ -4,6 +4,7 @@ import formatDate from '../functions/formatDate';
 import { HiTrash } from 'react-icons/hi';
 import useUserStore from '../store/useUserStore';
 import { toast } from 'react-toastify';
+import useAccountStore from '../store/useAccountStore';
 
 // Skeleton Loading Component for Transactions
 const TransactionSkeleton = () => (
@@ -33,7 +34,8 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
-  const {user} = useUserStore();
+  const user = useUserStore(u=>u.user);
+  const fetchAndUpdateAccounts = useAccountStore(s=>s.fetchAndUpdateAccounts);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -60,8 +62,8 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
 
   useEffect(() => {
     if (accountId) fetchTransactions();
-    // eslint-disable-next-line
-  }, [accountId, refreshKey]);
+    fetchAndUpdateAccounts();
+  }, [accountId, refreshKey,fetchAndUpdateAccounts]);
 
   const handleDelete = async (transactionId,amount) => {
     if (!window.confirm('Are you sure you want to delete this transaction?')) return;

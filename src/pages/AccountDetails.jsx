@@ -21,7 +21,7 @@ const AccountDetails = () => {
   const [transactionsRefreshKey, setTransactionsRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const {user} = useUserStore();
+  const user = useUserStore(u=>u.user);
   const [isAISummaryLoading, setIsAISummaryLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState('');
   const [showSummaryPopup, setShowSummaryPopup] = useState(false);

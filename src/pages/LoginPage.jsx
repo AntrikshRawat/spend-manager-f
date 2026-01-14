@@ -9,7 +9,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { fetchUserInfo ,setToken} = useUserStore();
+  const fetchUserInfo = useUserStore(u=>u.fetchUserInfo);
+  const setToken = useUserStore(u=>u.setToken);
   const [formData, setFormData] = useState({
     username: "",
     password: "",

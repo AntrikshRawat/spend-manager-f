@@ -5,7 +5,7 @@ import axiosInstance from '../functions/axiosInstance';
 import { toast } from 'react-toastify';
 
 const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,accountType}) => {
-  const { user } = useUserStore();
+  const user = useUserStore(u=>u.user);
   const [formData, setFormData] = useState({
     amount: '',
     where: '',

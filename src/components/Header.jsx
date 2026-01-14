@@ -6,6 +6,7 @@ import formatDate from "../functions/formatDate";
 import socket from "../socket";
 import { toast } from "react-toastify";
 import axiosInstance from "../functions/axiosInstance";
+import useAccountStore from "../store/useAccountStore";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,6 +15,8 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const fetchAndUpdateAccounts = useAccountStore(a=>a.fetchAndUpdateAccounts);
+  const clearAccounts = useAccountStore(a=>a.clearAccounts);
   
   // Use ref to track if component is mounted
   const isMountedRef = useRef(true);
@@ -41,7 +44,8 @@ export default function Header() {
 
   const handleAccount = useCallback((note) => {
     if (!isMountedRef.current) return;
-    
+    fetchAndUpdateAccounts();
+       
     try {
       if (note?.message) {
         toast.info(note.message);
@@ -52,11 +56,13 @@ export default function Header() {
     } catch (error) {
       console.error("Error handling account notification:", error);
     }
-  }, [navigate]);
+  }, [navigate,fetchAndUpdateAccounts]);
 
   const handlePayment = useCallback((note) => {
     if (!isMountedRef.current) return;
     
+    fetchAndUpdateAccounts();
+
     try {
       if (note?.message) {
         toast.info(note.message);
@@ -64,7 +70,7 @@ export default function Header() {
     } catch (error) {
       console.error("Error handling payment notification:", error);
     }
-  }, []);
+  }, [fetchAndUpdateAccounts]);
 
   // Socket effect with proper dependencies and cleanup
   useEffect(() => {
@@ -82,8 +88,8 @@ export default function Header() {
     return () => {
       if (socket) {
         socket.off("connect", handleConnect);
-        socket.off("account", handleAccount);
-        socket.off("payment", handlePayment);
+        socket.off("account-notification", handleAccount);
+        socket.off("payment-notification", handlePayment);
       }
     };
   }, [user?._id, handleConnect, handleAccount, handlePayment]);
@@ -125,9 +131,9 @@ export default function Header() {
     
     setIsLoggingOut(true);
     setLogoutMessage("Logging out...");
-    
     try {
       await logOutUser();
+      clearAccounts();
       
       if (!isMountedRef.current) return;
       

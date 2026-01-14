@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HiOutlineTrash,
   HiOutlineEye,
@@ -70,9 +70,11 @@ const AccountSkeleton = () => (
 
 export default function MyAccounts() {
   const navigate = useNavigate();
-  const { user  ,isLoggedIn} = useUserStore();
-  const { createdAccounts, joinedAccounts, fetchAndUpdateAccounts } =
-    useAccountStore();
+  const user = useUserStore(u=>u.user);
+  const isLoggedIn = useUserStore(u=>u.isLoggedIn);
+  const createdAccounts = useAccountStore(s=>s.createdAccounts);
+  const joinedAccounts = useAccountStore(s=>s.joinedAccounts);
+  const fetchAndUpdateAccounts = useAccountStore(s=>s.fetchAndUpdateAccounts);
   const [activeTab, setActiveTab] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -80,27 +82,43 @@ export default function MyAccounts() {
   const [previewAccount, setPreviewAccount] = useState(null);
   const [previewTransactions, setPreviewTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const location = useLocation();
+  const {refresh} = location.state || false;
+
+
   useEffect(() => {
     socket?.on("account-update", () => {
       fetchAndUpdateAccounts();
     });
+    socket?.on("payment-update",()=>{
+      fetchAndUpdateAccounts();
+    })
     // Clean up
     return () => {
       socket?.off("account-update");
+      socket?.off("payment-update")
     };
   });
 
+  useEffect(()=>{
+    if(refresh) fetchAndUpdateAccounts();
+  },[refresh,fetchAndUpdateAccounts])
+
   useEffect(() => {
     const loadAccounts = async () => {
-      if (createdAccounts === null || joinedAccounts === null) {
-        setIsLoading(true);
+      if (createdAccounts !== null && joinedAccounts !== null) {
+        setIsLoading(false);
+        return;
       }
 
-      await fetchAndUpdateAccounts();
+      setIsLoading(true);
+      if(isLoggedIn) {
+         await fetchAndUpdateAccounts();
+      }
       setIsLoading(false);
     };
     loadAccounts();
-  }, [createdAccounts, joinedAccounts, fetchAndUpdateAccounts]);
+  }, [createdAccounts, joinedAccounts, fetchAndUpdateAccounts,isLoggedIn]);
 
   useEffect(() => {
     if (!user && !isLoggedIn) {
@@ -233,7 +251,6 @@ export default function MyAccounts() {
       </div>
     );
   }
-
   return (
     <>
       {/* Blur Loading Overlay for Deleting */}
