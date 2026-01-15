@@ -101,8 +101,14 @@ export default function MyAccounts() {
   });
 
   useEffect(()=>{
-    if(refresh) fetchAndUpdateAccounts();
+    if(refresh){
+      fetchAndUpdateAccounts();
+    } 
   },[refresh,fetchAndUpdateAccounts])
+
+  useEffect(()=>{
+    fetchAndUpdateAccounts();
+  },[]);
 
   useEffect(() => {
     const loadAccounts = async () => {

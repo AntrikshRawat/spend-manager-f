@@ -142,7 +142,7 @@ export default function CreateAccount() {
           state:{
             refresh:true
           }
-        });
+        }); 
       } catch(err) {
         toast.error(err.message[0].msg || err.message);
       } finally {
