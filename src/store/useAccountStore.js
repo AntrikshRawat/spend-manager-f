@@ -10,7 +10,6 @@ const useAccountStore = create(
 
       fetchAndUpdateAccounts: async () => {
         try {
-          console.log("called")
           const { data } = await axiosInstance.get(
             `${import.meta.env.VITE_BACKEND_URL}/account/getaccounts`,
             {

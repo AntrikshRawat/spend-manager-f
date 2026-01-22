@@ -1,44 +1,56 @@
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import useUserStore from "../store/useUserStore";
+import LottieAnimation from "../components/LottieAnimation";
 
 export default function HomePage() {
   const user = useUserStore(u=>u.user);
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-        <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="sm:text-center lg:text-left">
-                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                  <span className="block">Manage your shared</span>
-                  <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    expenses with ease
-                  </span>
-                </h1>
-                <p className="mt-3 text-base text-gray-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  Track shared expenses, split bills, and manage group finances
-                  effortlessly. Perfect for roommates, friends, and family.
-                </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">
-                    <Link
-                      to={!user ? "/signup" : "/create-account"}
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 md:py-4 md:text-lg md:px-10 transition-all duration-200 transform hover:scale-105"
-                    >
-                      Get Started
-                    </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:pb-28 xl:pb-32">
+            <main className="mt-10 sm:mt-12 md:mt-16 lg:mt-20 xl:mt-28">
+              <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
+                {/* Animation - First in mobile, Right side in desktop */}
+                <div className="lg:col-span-6 lg:order-2 flex items-center justify-center">
+                  <div className="relative w-full max-w-lg mx-auto">
+                      <LottieAnimation />
                   </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link
-                      to={!user ? "/login" : "/my-accounts"}
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10 transition-all duration-200 transform hover:scale-105"
-                    >
-                      View Accounts
-                    </Link>
+                </div>
+
+                {/* Content - Second in mobile, Left side in desktop */}
+                <div className="mt-10 lg:mt-0 sm:text-center lg:text-left lg:col-span-6 lg:order-1">
+                  <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                    <span className="block">Manage your shared</span>
+                    <span className="block gradient-flow-text">
+                      expenses with ease
+                    </span>
+                  </h1>
+                  <p className="mt-3 text-base text-gray-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                    Track shared expenses, split bills, and manage group finances
+                    effortlessly. Perfect for roommates, friends, and family.
+                  </p>
+                  <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                    <div className="rounded-md shadow">
+                      <Link
+                        to={!user ? "/signup" : "/create-account"}
+                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white gradient-flow hover:from-blue-700 hover:to-purple-700 md:py-4 md:text-lg md:px-10 transition-all duration-200 transform hover:scale-105"
+                      >
+                        Get Started
+                      </Link>
+                    </div>
+                    <div className="mt-3 sm:mt-0 sm:ml-3">
+                      <Link
+                        to={!user ? "/login" : "/my-accounts"}
+                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10 transition-all duration-200 transform hover:scale-105"
+                      >
+                        View Accounts
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -270,39 +282,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
-          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            <span className="block">
-              Ready to start managing your expenses?
-            </span>
-            <span className="block text-blue-100">
-              Create your account today.
-            </span>
-          </h2>
-          <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-            <div className="inline-flex rounded-md shadow">
-              <Link
-                to="/create-account"
-                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 transition-all duration-200 transform hover:scale-105"
-              >
-                Get started
-              </Link>
-            </div>
-            <div className="ml-3 inline-flex rounded-md shadow">
-              <Link
-                to="/about"
-                className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-500 hover:bg-blue-400 transition-all duration-200 transform hover:scale-105"
-              >
-                Learn more
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
       <Footer />
     </div>
+    </>
   );
 }

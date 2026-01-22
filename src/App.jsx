@@ -1,15 +1,18 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignUpPage";
-import MyAccounts from "./pages/MyAccounts";
-import NotFound from "./pages/NotFound";
-import CreateAccount from "./pages/CreateAccount";
-import About from "./pages/About";
-import AccountDetails from "./pages/AccountDetails";
-import RootLayout from "./components/RootLayout";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Required CSS
+import "react-toastify/dist/ReactToastify.css"; 
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { lazy, Suspense } from "react";
+
+// Lazy load all components
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const HomePage = lazy(()=>import("./pages/HomePage"));
+const SignUpPage = lazy(()=>import("./pages/SignUpPage"));
+const MyAccounts = lazy(()=>import("./pages/MyAccounts"));
+const NotFound = lazy(()=>import("./pages/NotFound"));
+const CreateAccount = lazy(()=>import("./pages/CreateAccount"));
+const About = lazy(()=>import("./pages/About"));
+const AccountDetails = lazy(()=>import("./pages/AccountDetails"));
+const RootLayout = lazy(()=>import("./components/RootLayout"));
 import Notifications from "./components/Notifications";
 import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -94,10 +97,10 @@ async function subscribeUser() {
     // send subscription to backend
     await axios.post(
       `${import.meta.env.VITE_BACKEND_URL}/userAccount/subscribe`,
-      {subscription},
+      { subscription },
       {
         headers: { "Content-Type": "application/json" },
-        withCredentials: true
+        withCredentials: true,
       }
     );
   } catch (err) {
@@ -107,13 +110,15 @@ async function subscribeUser() {
 
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
   const rawData = atob(base64);
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
 export default function App() {
-  const user = useUserStore(u=>u.user);
+  const user = useUserStore((u) => u.user);
   useEffect(() => {
     if (user && user._id) {
       subscribeUser();

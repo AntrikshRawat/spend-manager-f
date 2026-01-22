@@ -108,8 +108,8 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       if (!isMountedRef.current) return;
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 20);
+      const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 20);
     };
     
     window.addEventListener("scroll", handleScroll);
@@ -261,6 +261,7 @@ export default function Header() {
 
   return (
     <>
+
       {isLoggingOut && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-4 animate-fade-in">
@@ -315,15 +316,16 @@ export default function Header() {
       )}
 
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-500 ${
+        className={`fixed left-1/2 -translate-x-1/2 top-4 z-50 transition-all duration-500 ease-in-out shadow-inner ${
           isScrolled
-            ? "bg-white/70 backdrop-blur-md shadow-md"
-            : "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
+            ? "bg-white/80 backdrop-blur-xl"
+            : "backdrop-blur-md gradient-flow"
         } ${
           isLoggingOut ? "filter blur-sm pointer-events-none select-none" : ""
-        }`}
+        } rounded-2xl w-[98%] max-w-7xl`}
+        style={{ boxShadow: 'inset 0 2px 8px rgba(0, 0, 0, 0.1)' }}
       >
-        <nav className="container mx-auto px-4 py-4">
+        <nav className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div
               className={`flex text-xl font-bold ${
@@ -336,7 +338,7 @@ export default function Header() {
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="inline-block"
                   >
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg mx-2">
+                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-600 text-white font-bold text-lg mx-2">
                       {user.userName ? user.userName.charAt(0).toUpperCase() : 'U'}
                     </div>
                   </button>
@@ -358,10 +360,10 @@ export default function Header() {
                           <span className="font-medium">Email:</span> {user.email || 'N/A'}
                         </p>
                       </div>
-                      <div className="px-4 py-2 border-t border-gray-100">
+                      <div className="px-4 py-2 border-t border-gray-100 space-y-2">
                         <Link
                           to="/change-password"
-                          className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 text-center"
+                          className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 text-center rounded"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           Change Password
@@ -373,11 +375,12 @@ export default function Header() {
               )}
               <Link
                 to="/"
-                className={`text-xl font-bold mx-1 ${
-                  isScrolled ? "text-gray-800" : "text-white"
+                className={`text-2xl font-bold mx-1 ${
+                  isScrolled ? "text-gray-600" : "text-emerald-200"
                 }`}
               >
-                Spend Manager
+                Spend
+                <p className={`inline ${isScrolled ? "text-gray-900":"text-emerald-400"}`}>MNR</p>
               </Link>
             </div>
 
@@ -430,7 +433,9 @@ export default function Header() {
                           : "text-white hover:bg-white/10"
                       }`}
                     >
-                      <HiBell className="w-6 h-6 text-blue-500" />
+                      <HiBell className={`w-6 h-6 ${
+                        isScrolled ? "text-orange-500" : "text-white"
+                      }`} />
                     </button>
                     {isNotificationOpen && (
                       <NotificationDropdown onClose={toggleNotifications} />
@@ -488,7 +493,9 @@ export default function Header() {
                         : "text-white hover:bg-white/10"
                     }`}
                   >
-                    <HiBell className="w-6 h-6 text-green-500" />
+                    <HiBell className={`w-6 h-6 ${
+                      isScrolled ? "text-orange-500" : "text-white"
+                    }`} />
                   </button>
                   {isNotificationOpen && (
                     <NotificationDropdown onClose={toggleNotifications} />

@@ -1,15 +1,63 @@
 @import "tailwindcss";
 
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-flow {
+  background: linear-gradient(
+    -45deg,
+    #1e3a8a,
+    #3b82f6,
+    #6366f1,
+    #7c3aed,
+    #a855f7,
+    #4f46e5,
+    #2563eb,
+    #1e40af,
+    #1e3a8a
+  );
+  background-size: 400% 400%;
+  animation: gradient-flow 12s ease infinite;
+}
+
+.gradient-flow-text {
+  background: linear-gradient(
+    -45deg,
+    #1e3a8a,
+    #3b82f6,
+    #6366f1,
+    #7c3aed,
+    #a855f7,
+    #4f46e5,
+    #2563eb,
+    #1e40af,
+    #1e3a8a
+  );
+  background-size: 400% 400%;
+  animation: gradient-flow 12s ease infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 /* Custom scrollbar styling */
 ::-webkit-scrollbar {
-     width: 5px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-track {
-     background: transparent;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-     background: #7288aa;
-     border-radius: 20px;
+  background: #7288aa;
+  border-radius: 20px;
 }

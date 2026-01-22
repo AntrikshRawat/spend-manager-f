@@ -202,7 +202,7 @@ export default function MyAccounts() {
           <div className="flex flex-col items-center mb-10">
             <div className="flex items-center gap-3 mb-2">
               <HiUserGroup className="text-4xl text-blue-600 drop-shadow" />
-              <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold gradient-flow-text tracking-tight">
                 My Accounts
               </h1>
             </div>
