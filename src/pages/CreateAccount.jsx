@@ -93,7 +93,7 @@ export default function CreateAccount() {
   }
 
   const addMember = () => {
-    if (members.length < 6) setMembers([...members, ''])
+    if (members.length < 12) setMembers([...members, ''])
   }
 
   const removeMember = (idx) => {
@@ -199,7 +199,7 @@ export default function CreateAccount() {
         </div>
         {accountType === 'shared' && (
           <div>
-            <label className="block text-gray-700 font-semibold mb-1">Add Members (up to 6)</label>
+            <label className="block text-gray-700 font-semibold mb-1">Add Members (up to 10)</label>
             <div className="flex flex-col gap-3">
             {members.map((member, idx) => (
               <div key={idx} className="flex gap-2 items-center relative">
@@ -244,7 +244,7 @@ export default function CreateAccount() {
                     <HiMinus />
                   </button>
                 )}
-                {idx === members.length - 1 && members.length < 6 && (
+                {idx === members.length - 1 && members.length < 10 && (
                   <button
                     type="button"
                     onClick={addMember}
