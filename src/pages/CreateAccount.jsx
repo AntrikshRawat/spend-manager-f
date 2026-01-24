@@ -200,7 +200,7 @@ export default function CreateAccount() {
         {accountType === 'shared' && (
           <div>
             <label className="block text-gray-700 font-semibold mb-1">Add Members (up to 10)</label>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 max-h-64 overflow-y-auto pr-2">
             {members.map((member, idx) => (
               <div key={idx} className="flex gap-2 items-center relative">
                 <div className="flex-1 relative">

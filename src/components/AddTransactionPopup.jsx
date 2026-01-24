@@ -11,10 +11,20 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
     where: '',
   });
   const [memberAmounts, setMemberAmounts] = useState(() => accountMembers.map(() => ''));
+  const [excludedMembers, setExcludedMembers] = useState(() => accountMembers.map(() => false));
   const [error, setError] = useState('');
   const [equalSplit, setEqualSplit] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
+  const clearForm=(status)=>{
+    setFormData({
+      amount:'',
+      where:''
+    });
+    setExcludedMembers(accountMembers.map(()=>false));
+    onClose(status);
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -50,11 +60,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
           withCredentials: true,
         }
       );
-      onClose(true);
-      setFormData({
-        amount: '',
-        where: '',
-      })
+      clearForm(true);
     } catch (err) {
       const errorMsg = err.response?.data?.message?.[0]?.msg || err.response?.data?.message || 'Failed to add transaction.';
       setError(errorMsg);
@@ -78,17 +84,27 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
     if (name === 'amount' && equalSplit) {
       const transactionAmount = Number(value);
       if (transactionAmount > 0 && accountMembers.length > 0) {
-        const equalValue = Math.floor(transactionAmount / accountMembers.length);
-        let amountsArr = Array(accountMembers.length).fill(equalValue.toString());
-        // Distribute the remainder to the first few
-        let remainder = transactionAmount - equalValue * accountMembers.length;
-        for (let i = 0; i < remainder; i++) {
-          amountsArr[i] = (equalValue + 1).toString();
+        const includedMembers = excludedMembers.filter(excluded => !excluded).length;
+        if (includedMembers === 0) return;
+        
+        const equalValue = Math.floor(transactionAmount / includedMembers);
+        let amountsArr = Array(accountMembers.length).fill('0');
+        let remainder = transactionAmount - equalValue * includedMembers;
+        
+        let distributedCount = 0;
+        for (let i = 0; i < accountMembers.length; i++) {
+          if (!excludedMembers[i]) {
+            amountsArr[i] = equalValue.toString();
+            if (distributedCount < remainder) {
+              amountsArr[i] = (equalValue + 1).toString();
+              distributedCount++;
+            }
+          }
         }
         setMemberAmounts(amountsArr);
       } else {
-        // If amount is 0 or invalid, clear all member amounts
-        setMemberAmounts(Array(accountMembers.length).fill(''));
+        // If amount is 0 or invalid, clear all non-excluded member amounts
+        setMemberAmounts(prev => prev.map((amt, idx) => excludedMembers[idx] ? '0' : ''));
       }
     }
   };
@@ -101,37 +117,116 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
     });
   };
 
+  const handleMemberExcludeChange = (idx, checked) => {
+    setExcludedMembers(prev => {
+      const arr = [...prev];
+      arr[idx] = checked;
+      return arr;
+    });
+    
+    // Set amount to 0 if excluded
+    if (checked) {
+      setMemberAmounts(prev => {
+        const arr = [...prev];
+        arr[idx] = '0';
+        return arr;
+      });
+      
+      // Recalculate equal split for remaining included members
+      if (equalSplit && formData.amount) {
+        const transactionAmount = Number(formData.amount);
+        const newExcludedMembers = [...excludedMembers];
+        newExcludedMembers[idx] = true;
+        const includedCount = newExcludedMembers.filter(excluded => !excluded).length;
+        
+        if (transactionAmount > 0 && includedCount > 0) {
+          const equalValue = Math.floor(transactionAmount / includedCount);
+          let amountsArr = Array(accountMembers.length).fill('0');
+          let remainder = transactionAmount - equalValue * includedCount;
+          
+          let distributedCount = 0;
+          for (let i = 0; i < accountMembers.length; i++) {
+            if (!newExcludedMembers[i]) {
+              amountsArr[i] = equalValue.toString();
+              if (distributedCount < remainder) {
+                amountsArr[i] = (equalValue + 1).toString();
+                distributedCount++;
+              }
+            }
+          }
+          setMemberAmounts(amountsArr);
+        }
+      }
+    } else {
+      // Member is being re-included
+      if (equalSplit && formData.amount) {
+        const transactionAmount = Number(formData.amount);
+        const newExcludedMembers = [...excludedMembers];
+        newExcludedMembers[idx] = false;
+        const includedCount = newExcludedMembers.filter(excluded => !excluded).length;
+        
+        if (transactionAmount > 0 && includedCount > 0) {
+          const equalValue = Math.floor(transactionAmount / includedCount);
+          let amountsArr = Array(accountMembers.length).fill('0');
+          let remainder = transactionAmount - equalValue * includedCount;
+          
+          let distributedCount = 0;
+          for (let i = 0; i < accountMembers.length; i++) {
+            if (!newExcludedMembers[i]) {
+              amountsArr[i] = equalValue.toString();
+              if (distributedCount < remainder) {
+                amountsArr[i] = (equalValue + 1).toString();
+                distributedCount++;
+              }
+            }
+          }
+          setMemberAmounts(amountsArr);
+        }
+      }
+    }
+  };
+
   const handleEqualSplitChange = (e) => {
     const checked = e.target.checked;
     setEqualSplit(checked);
     if (checked && accountMembers.length > 0 && formData.amount) {
       const transactionAmount = Number(formData.amount);
       if (transactionAmount > 0) {
-        const equalValue = Math.floor(transactionAmount / accountMembers.length);
-        let amountsArr = Array(accountMembers.length).fill(equalValue.toString());
-        // Distribute the remainder to the first few
-        let remainder = transactionAmount - equalValue * accountMembers.length;
-        for (let i = 0; i < remainder; i++) {
-          amountsArr[i] = (equalValue + 1).toString();
+        const includedMembers = excludedMembers.filter(excluded => !excluded).length;
+        if (includedMembers === 0) return;
+        
+        const equalValue = Math.floor(transactionAmount / includedMembers);
+        let amountsArr = Array(accountMembers.length).fill('0');
+        let remainder = transactionAmount - equalValue * includedMembers;
+        
+        let distributedCount = 0;
+        for (let i = 0; i < accountMembers.length; i++) {
+          if (!excludedMembers[i]) {
+            amountsArr[i] = equalValue.toString();
+            if (distributedCount < remainder) {
+              amountsArr[i] = (equalValue + 1).toString();
+              distributedCount++;
+            }
+          }
         }
         setMemberAmounts(amountsArr);
       }
     } else if (!checked) {
-      // If unchecking equal split, clear all amounts
-      setMemberAmounts(Array(accountMembers.length).fill(''));
+      // If unchecking equal split, clear all amounts except excluded members
+      setMemberAmounts(prev => prev.map((amt, idx) => excludedMembers[idx] ? '0' : ''));
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white/95 rounded-xl shadow-xl w-full max-w-md mx-4">
-        <div className="p-6">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+        <div className="p-6 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Add Transaction</h2>
             <button
-              onClick={() => { onClose(false) }}
+              onClick={() => { clearForm(false) }}
               className="text-gray-500 hover:text-gray-700 transition-colors"
             >
               <HiX className="w-6 h-6" />
@@ -204,7 +299,19 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
 
                 <div className="space-y-3 border-1 p-3 rounded-xl bg-gray-50">
                   {accountMembers.map((member, idx) => (
-                    <div key={member} className="flex items-center gap-3">
+                    <div key={member} className={`flex items-center gap-3 ${excludedMembers[idx] ? 'opacity-40' : ''}`}>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`exclude-${idx}`}
+                          checked={!excludedMembers[idx]}
+                          onChange={(e) => handleMemberExcludeChange(idx, !e.target.checked)}
+                          className="accent-blue-600 cursor-pointer"
+                        />
+                        <label htmlFor={`exclude-${idx}`} className="text-xs text-gray-600 cursor-pointer select-none whitespace-nowrap">
+                          Include
+                        </label>
+                      </div>
                       <span className="flex-1 text-gray-700 font-medium">{member}</span>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
@@ -214,9 +321,9 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
                           step="0.01"
                           value={memberAmounts[idx]}
                           onChange={e => handleMemberAmountChange(idx, e.target.value)}
-                          className="w-24 pl-8 pr-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right"
+                          className="w-24 pl-8 pr-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right disabled:bg-gray-100 disabled:cursor-not-allowed"
                           placeholder="0"
-                          disabled={equalSplit}
+                          disabled={equalSplit || excludedMembers[idx]}
                           required
                         />
                       </div>
@@ -231,7 +338,7 @@ const AddTransactionPopup = ({ isOpen, onClose, accountMembers = [], accountId ,
             <div className="flex justify-end gap-4 mt-6">
               <button
                 type="button"
-                onClick={() => { onClose(false) }}
+                onClick={() => { clearForm(false) }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
