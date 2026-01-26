@@ -11,7 +11,7 @@ import useUserStore from "../store/useUserStore";
 import socket from "../socket";
 import { toast } from "react-toastify";
 import ReportViewer from "../components/ReportViewer";
-import SettlePaymentPopup from "../components/SettlePaymentPopup";
+// import SettlePaymentPopup from "../components/SettlePaymentPopup";
 
 const AccountDetails = () => {
   const [account, setAccount] = useState({});
@@ -26,8 +26,8 @@ const AccountDetails = () => {
   const [isAISummaryLoading, setIsAISummaryLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const [showSummaryPopup, setShowSummaryPopup] = useState(false);
-  const [userDue, setUserDue] = useState(0);
-  const [isSettlePaymentOpen, setIsSettlePaymentOpen] = useState(false);
+  // const [userDue, setUserDue] = useState(0);
+  // const [isSettlePaymentOpen, setIsSettlePaymentOpen] = useState(false);
   const [paidSpendSummery, setPaidSpendSummery] = useState({});
   const [paidSpendLoading, setPaidSpendLoading] = useState(true);
 
@@ -87,9 +87,9 @@ const AccountDetails = () => {
         },
       );
       setPaidSpendSummery(data);
-      const paid = data?.paidSummary?.[user.userName] || 0;
-      const spend = data?.expenseSummary?.[user.userName] || 0;
-      setUserDue(paid < spend ? spend - paid : 0);
+      // const paid = data?.paidSummary?.[user.userName] || 0;
+      // const spend = data?.expenseSummary?.[user.userName] || 0;
+      // setUserDue(paid < spend ? spend - paid : 0);
     } catch (err) {
       console.error("Failed to fetch user paid-spend data:", err);
     } finally {
@@ -269,7 +269,7 @@ const AccountDetails = () => {
               </button>
             )}
 
-            {/* Settle Payments Button */}
+            {/* Settle Payments Button
             {account.accountType === "shared" && (
               <button
                 onClick={() => setIsSettlePaymentOpen(true)}
@@ -298,7 +298,7 @@ const AccountDetails = () => {
                 </svg>
                 <span className="font-semibold">Settle Transactions</span>
               </button>
-            )}
+            )} */}
 
             {/* AI Summarizer Button */}
             <button
@@ -435,7 +435,7 @@ const AccountDetails = () => {
         </div>
       )}
 
-      {/* Settle Payment Popup */}
+      {/* Settle Payment Popup
       <SettlePaymentPopup
         isOpen={isSettlePaymentOpen}
         onClose={() => {
@@ -443,7 +443,7 @@ const AccountDetails = () => {
         }}
         paidSpendLoading={paidSpendLoading}
         paidSpendSummery={paidSpendSummery}
-      />
+      /> */}
 
       <AddTransactionPopup
         isOpen={isAddTransactionOpen}
