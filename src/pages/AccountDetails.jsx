@@ -1,5 +1,13 @@
 import { useParams } from "react-router-dom";
-import { HiArrowLeft, HiPlus, HiRefresh, HiSparkles } from "react-icons/hi";
+import {
+  HiArrowLeft,
+  HiPlus,
+  HiRefresh,
+  HiSparkles,
+  HiOutlineCurrencyRupee,
+  HiOutlineUsers,
+  HiOutlineDocumentText,
+} from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AddTransactionPopup from "../components/AddTransactionPopup";
@@ -11,7 +19,6 @@ import useUserStore from "../store/useUserStore";
 import socket from "../socket";
 import { toast } from "react-toastify";
 import ReportViewer from "../components/ReportViewer";
-// import SettlePaymentPopup from "../components/SettlePaymentPopup";
 
 const AccountDetails = () => {
   const [account, setAccount] = useState({});
@@ -26,8 +33,6 @@ const AccountDetails = () => {
   const [isAISummaryLoading, setIsAISummaryLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const [showSummaryPopup, setShowSummaryPopup] = useState(false);
-  // const [userDue, setUserDue] = useState(0);
-  // const [isSettlePaymentOpen, setIsSettlePaymentOpen] = useState(false);
   const [paidSpendSummery, setPaidSpendSummery] = useState({});
   const [paidSpendLoading, setPaidSpendLoading] = useState(true);
 
@@ -186,38 +191,100 @@ const AccountDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-8 px-4 pb-24">
-      <div className="max-w-4xl mx-auto">
+    <div className="relative min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-8 px-4 pb-24 overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-300/40 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-300/40 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-200/20 to-purple-200/20 rounded-full blur-3xl"></div>
+        {/* Floating particles */}
+        <div className="absolute top-20 left-1/4 w-2 h-2 bg-blue-400/60 rounded-full animate-bounce delay-100"></div>
+        <div className="absolute top-40 right-1/3 w-3 h-3 bg-purple-400/60 rounded-full animate-bounce delay-300"></div>
+        <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-pink-400/60 rounded-full animate-bounce delay-500"></div>
+      </div>
+
+      <div className="max-w-5xl mx-auto relative z-10">
         {/* Header Section */}
         <div className="mb-8">
           <Link
             to="/my-accounts"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 transition-all duration-200 group"
           >
-            <HiArrowLeft className="w-5 h-5 mr-2" />
-            Back to Accounts
+            <div className="p-2 rounded-xl bg-white shadow-md group-hover:bg-blue-50 group-hover:shadow-lg transition-all duration-200">
+              <HiArrowLeft className="w-5 h-5" />
+            </div>
+            <span className="font-medium">Back to Accounts</span>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {!isFetching ? account?.accountName : "-"}
-          </h1>
+
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-40 animate-pulse"></div>
+              <div className="relative bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg">
+                <HiOutlineDocumentText className="text-2xl text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent tracking-tight">
+                {!isFetching ? account?.accountName : "Loading..."}
+              </h1>
+              {account?.accountType && (
+                <span className={`inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold shadow-md ${
+                  account.accountType === 'personal'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
+                    : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                }`}>
+                  <HiSparkles className="w-3 h-3" />
+                  {account.accountType === 'personal' ? 'Personal' : 'Shared'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl shadow-md p-4">
-              <p className="text-sm text-gray-500 mb-1">Total Spend</p>
-              <p className="text-2xl font-bold">
-                ₹{!isFetching ? account.totalSpend : "-"}
-              </p>
+            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-xl bg-green-50">
+                    <HiOutlineCurrencyRupee className="w-6 h-6 text-green-500" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-500">Total Spend</p>
+                </div>
+                <p className="text-3xl font-bold text-gray-800">
+                  ₹{!isFetching ? account.totalSpend : "-"}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-4">
-              <p className="text-sm text-gray-500 mb-1">Members</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {!isFetching ? account.accountMembers?.length : "-"}
-              </p>
+
+            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-xl bg-blue-50">
+                    <HiOutlineUsers className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-500">Members</p>
+                </div>
+                <p className="text-3xl font-bold text-gray-800">
+                  {!isFetching ? account.accountMembers?.length : "-"}
+                </p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl shadow-md p-4">
-              <p className="text-sm text-gray-500 mb-1">Total Transactions</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {!isFetching ? account.totalTransaction : "-"}
-              </p>
+
+            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 rounded-xl bg-purple-50">
+                    <HiOutlineDocumentText className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-500">Total Transactions</p>
+                </div>
+                <p className="text-3xl font-bold text-gray-800">
+                  {!isFetching ? account.totalTransaction : "-"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -231,18 +298,19 @@ const AccountDetails = () => {
         )}
 
         {/* Action Buttons Row */}
-        <div className="mb-6 bg-white rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="mb-6 bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <div className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Add Transaction Button */}
             <button
               onClick={() => setIsAddTransactionOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 active:scale-95"
             >
               <HiPlus className="w-5 h-5" />
-              <span className="font-semibold">Add Transaction</span>
+              <span>Add Transaction</span>
             </button>
 
             {/* Clear Transactions Button */}
@@ -250,7 +318,7 @@ const AccountDetails = () => {
               <button
                 onClick={handleClearTransactions}
                 disabled={account.totalTransaction === 0 || loading}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
                   className="w-5 h-5"
@@ -265,64 +333,34 @@ const AccountDetails = () => {
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                <span className="font-semibold">Clear Transactions</span>
+                <span>Clear Transactions</span>
               </button>
             )}
-
-            {/* Settle Payments Button
-            {account.accountType === "shared" && (
-              <button
-                onClick={() => setIsSettlePaymentOpen(true)}
-                disabled={account.totalTransaction === 0 || userDue === 0}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                title={
-                  account.totalTransaction === 0
-                    ? "No transactions to settle"
-                    : userDue === 0
-                      ? "You have paid more than your share"
-                      : "Settle payments"
-                }
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className="font-semibold">Settle Transactions</span>
-              </button>
-            )} */}
 
             {/* AI Summarizer Button */}
             <button
               onClick={handleAISummarizer}
               disabled={isFetching}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:from-teal-700 hover:to-cyan-700 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-teal-50 text-teal-600 border border-teal-200 hover:bg-teal-100 hover:border-teal-300 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <HiSparkles className="w-5 h-5" />
-              <span className="font-semibold">AI Summarizer</span>
+              <span>AI Summarizer</span>
             </button>
           </div>
         </div>
 
         {/* Transaction Section */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold text-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                <h2 className="text-xl font-bold text-gray-800">
                   Transaction History
                 </h2>
                 <button
                   onClick={() => setTransactionsRefreshKey((k) => k + 1)}
-                  className="ml-2 p-2 rounded-full bg-gray-100 hover:bg-blue-100 text-blue-600 transition"
+                  className="ml-2 p-2 rounded-xl bg-gray-100 hover:bg-blue-50 text-blue-500 hover:text-blue-600 transition-all duration-200"
                   title="Refresh Transactions"
                 >
                   <HiRefresh className="w-5 h-5" />
@@ -345,18 +383,24 @@ const AccountDetails = () => {
 
       {/* AI Summary Popup */}
       {showSummaryPopup && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-scroll">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col border border-gray-200">
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6">
-              <div className="flex items-center justify-between">
+            <div className="relative overflow-hidden p-6 bg-gradient-to-r from-purple-500 to-pink-500 shrink-0">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+              <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <HiSparkles className="w-6 h-6" />
-                  <h2 className="text-xl font-bold">AI Account Summary</h2>
+                  <div className="p-2 rounded-xl bg-white/20">
+                    <HiSparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">AI Account Summary</h2>
+                    <p className="text-purple-100 text-sm">Powered by AI analysis</p>
+                  </div>
                 </div>
                 <button
                   onClick={closeSummaryPopup}
-                  className="text-white hover:text-gray-200 transition-colors"
+                  className="p-2 rounded-xl bg-white/20 text-white hover:bg-white/30 transition-all"
                 >
                   <svg
                     className="w-6 h-6"
@@ -376,74 +420,70 @@ const AccountDetails = () => {
             </div>
 
             {/* Content */}
-            <div className="flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto p-6">
-                {isAISummaryLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <div className="relative">
-                      <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <HiSparkles className="w-8 h-8 text-purple-600 animate-pulse" />
-                      </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-6">
+              {isAISummaryLoading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 animate-pulse"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full border-4 border-purple-200 border-t-purple-500 animate-spin"></div>
                     </div>
-                    <div className="mt-6 text-center">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                        AI is analyzing your account...
-                      </h3>
-                      <p className="text-gray-600">
-                        Generating intelligent insights from your transaction
-                        data
-                      </p>
-                    </div>
-                    <div className="mt-4 flex space-x-1">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <HiSparkles className="w-6 h-6 text-purple-500 animate-pulse" />
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
-                      <h3 className="font-semibold text-gray-800 mb-2">
-                        📊 Account Insights
-                      </h3>
-                      <ReportViewer text={aiSummary} />
-                    </div>
+                  <div className="mt-6 text-center">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">
+                      AI is analyzing your account...
+                    </h3>
+                    <p className="text-gray-500">
+                      Generating intelligent insights from your transaction data
+                    </p>
                   </div>
-                )}
-              </div>
-
-              {/* Fixed Footer with Close Button */}
-              <div className="border-t border-gray-200 p-4 bg-white">
-                <div className="flex justify-end">
-                  <button
-                    onClick={closeSummaryPopup}
-                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-semibold"
-                  >
-                    Close
-                  </button>
+                  <div className="mt-4 flex space-x-1.5">
+                    <div className="w-2.5 h-2.5 bg-purple-400 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2.5 h-2.5 bg-purple-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    ></div>
+                    <div
+                      className="w-2.5 h-2.5 bg-purple-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                  </div>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-5 border border-purple-100">
+                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <span className="text-lg">📊</span> Account Insights
+                    </h3>
+                    <ReportViewer text={aiSummary} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 p-4 bg-gray-50 shrink-0">
+              <div className="flex gap-3">
+                <button
+                  onClick={closeSummaryPopup}
+                  className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 font-semibold"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={closeSummaryPopup}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 font-semibold shadow-lg shadow-purple-500/25"
+                >
+                  Got It
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Settle Payment Popup
-      <SettlePaymentPopup
-        isOpen={isSettlePaymentOpen}
-        onClose={() => {
-          setIsSettlePaymentOpen(false);
-        }}
-        paidSpendLoading={paidSpendLoading}
-        paidSpendSummery={paidSpendSummery}
-      /> */}
 
       <AddTransactionPopup
         isOpen={isAddTransactionOpen}

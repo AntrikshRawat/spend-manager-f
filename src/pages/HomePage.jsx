@@ -195,40 +195,40 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Feature 4 */}
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative p-6 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-gradient-to-r from-red-500 to-orange-500 text-white mb-4">
-                    <svg
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m-6 8h6M5 12h.01M19 12h.01M4 8h16M4 16h16"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    AI Analyzer
-                  </h3>
-                  <p className="mt-2 text-base text-gray-600">
-                    Summarizes account activity — who paid, who spent, and who
-                    owes whom.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              {/* /* Feature 4 */}
+                      <div className="relative group">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                      <div className="relative p-6 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
+                        <div className="flex items-center justify-center h-12 w-12 rounded-md bg-gradient-to-r from-red-500 to-orange-500 text-white mb-4">
+                        <svg
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m-6 8h6M5 12h.01M19 12h.01M4 8h16M4 16h16"
+                          />
+                        </svg>
+                        </div>
+                        <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        AI Analyzer
+                        </h3>
+                        <p className="mt-2 text-base text-gray-600">
+                        Automatically summarizes account activity — who paid, who spent, and who
+                        owes whom.
+                        </p>
+                      </div>
+                      </div>
+                      </div>
+                      </div>
+                    </div>
+                    </div>
 
-      {/* How It Works Section */}
+                  {/* How It Works Section */}
       <div className="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
