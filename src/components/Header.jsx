@@ -7,6 +7,7 @@ import socket from "../socket";
 import { toast } from "react-toastify";
 import axiosInstance from "../functions/axiosInstance";
 import useAccountStore from "../store/useAccountStore";
+import ProfileMenu from "./ProfileMenu";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,7 +15,6 @@ export default function Header() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState("");
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const fetchAndUpdateAccounts = useAccountStore(a=>a.fetchAndUpdateAccounts);
   const clearAccounts = useAccountStore(a=>a.clearAccounts);
   
@@ -332,47 +332,7 @@ export default function Header() {
                 isScrolled ? "text-gray-800" : "text-white"
               }`}
             >
-              {user && (
-                <div className="relative inline-block">
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="inline-block"
-                  >
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-600 text-white font-bold text-lg mx-2">
-                      {user.userName ? user.userName.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                  </button>
-                  
-                  {/* User Menu Dropdown */}
-                  {isUserMenuOpen && (
-                    <div className="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <h3 className="text-sm font-semibold text-gray-800">Account Settings</h3>
-                      </div>
-                      <div className="px-4 py-3">
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">UserName:</span> {user.userName || 'N/A'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">FullName:</span> {user.firstName ? user.firstName.toUpperCase() : 'N/A'} {user.lastName ? user.lastName.toUpperCase() : ''}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">Email:</span> {user.email || 'N/A'}
-                        </p>
-                      </div>
-                      <div className="px-4 py-2 border-t border-gray-100 space-y-2">
-                        <Link
-                          to="/change-password"
-                          className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 text-center rounded"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          Change Password
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              <ProfileMenu onLogout={handleLogout} />
               <Link
                 to="/"
                 className={`text-2xl font-bold mx-1 ${
@@ -443,18 +403,9 @@ export default function Header() {
                   </div>
                 )}
 
-                <div className="h-6 w-px bg-gray-300"></div>
-
-                {user ? (
-                  <button
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="px-4 py-2 rounded-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoggingOut ? "Logging out..." : "Logout"}
-                  </button>
-                ) : (
+                {!user && (
                   <>
+                    <div className="h-6 w-px bg-gray-300"></div>
                     <Link
                       to="/login"
                       className={`px-4 py-2 rounded-md transition-all duration-200 ${
