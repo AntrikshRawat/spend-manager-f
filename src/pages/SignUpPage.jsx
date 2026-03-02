@@ -144,7 +144,7 @@ export default function SignUpPage() {
                 size="large"
                 shape="pill"
                 text="continue_with"
-                width="400"
+                width="100%"
               />
             </div>
 
