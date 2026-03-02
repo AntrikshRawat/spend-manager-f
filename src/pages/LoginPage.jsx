@@ -4,6 +4,8 @@ import { HiOutlineLockClosed, HiOutlineMail, HiOutlineEye, HiOutlineEyeOff } fro
 import axiosInstance from "../functions/axiosInstance";
 import useUserStore from "../store/useUserStore";
 import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -63,6 +65,37 @@ export default function LoginPage() {
     }));
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const token = credentialResponse.credential;
+    setIsLoading(true);
+    setError("");
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/auth/v1/google`,
+        { token },
+        { withCredentials: true }
+      );
+      toast.success(data?.message || "Google login successful!");
+      if (data?.authToken) {
+        await setToken(data.authToken);
+      }
+      fetchUserInfo().then(() => {
+        navigate("/my-accounts");
+      });
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.message || "Google login failed. Please try again.";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error("Google login failed. Please try again.");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Animated Background Orbs */}
@@ -91,6 +124,26 @@ export default function LoginPage() {
 
           {/* Form */}
           <form className="p-6 space-y-5" onSubmit={handleSubmit}>
+            {/* Google Login */}
+            <div className="flex justify-center [&>div]:w-full [&>div>div]:w-full [&_iframe]:!w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                shape="pill"
+                text="continue_with"
+                width="400"
+              />
+            </div>
+
+            {/* Divider */}
+            <div className="relative flex items-center">
+              <div className="flex-1 border-t border-gray-200"></div>
+              <span className="px-3 text-xs font-medium text-gray-400 bg-white">OR</span>
+              <div className="flex-1 border-t border-gray-200"></div>
+            </div>
+
             {/* Username/Email */}
             <div>
               <label

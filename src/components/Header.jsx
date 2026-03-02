@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { HiBell } from "react-icons/hi";
+import { HiBell, HiOutlineClock } from "react-icons/hi";
 import useUserStore from "../store/useUserStore";
 import formatDate from "../functions/formatDate";
 import socket from "../socket";
@@ -204,54 +204,109 @@ export default function Header() {
     const visibleNotifications = notifications.slice(0, 5);
 
     return (
-      <div className="absolute right-0 mt-2 w-72  xl:w-80 md:w-72 xs:w-60 bg-white rounded-lg shadow-lg py-2 z-50">
-        <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-sm font-semibold text-gray-800">Notifications</h3>
+      <div className="absolute right-0 mt-2 w-80 xl:w-88 md:w-80 bg-white rounded-2xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-sm">
+            <HiBell className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-sm font-bold text-gray-800 flex-1">Notifications</h3>
+          {!loading && !error && visibleNotifications.length > 0 && (
+            <span className="text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
+              {notifications.length}
+            </span>
+          )}
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 text-lg"
+            className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors duration-200"
           >
             &times;
           </button>
         </div>
+
         <div className="max-h-96 overflow-y-auto">
-          {loading && <div className="px-4 py-3 text-gray-500">Loading...</div>}
-          {error && <div className="px-4 py-3 text-red-500">{error}</div>}
-          {!loading && !error && visibleNotifications.length === 0 && (
-            <div className="px-4 py-3 text-gray-500">No notifications</div>
-          )}
-          {!loading &&
-            !error &&
-            visibleNotifications.map((note, idx) => (
-              <div
-                key={note.id || idx} // Use proper key
-                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500 font-semibold">
-                    From: {note.from || 'System'}
-                  </span>
-                  {note.timestamp && (
-                    <span className="text-xs text-gray-400">
-                      {formatDate(note.timestamp)}
-                    </span>
-                  )}
+          {/* Loading State */}
+          {loading && (
+            <div className="p-4 space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full shrink-0"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 bg-gray-200 rounded w-24"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-800">{note.message || 'No message'}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="p-4 flex items-center gap-2 text-red-600">
+              <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                <span className="text-sm font-bold">!</span>
               </div>
-            ))}
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && visibleNotifications.length === 0 && (
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                <HiBell className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-gray-500 text-sm font-medium">No notifications yet</p>
+              <p className="text-gray-400 text-xs mt-1">Activity updates will appear here.</p>
+            </div>
+          )}
+
+          {/* Notification Items */}
+          {!loading && !error && visibleNotifications.length > 0 && (
+            <ul className="divide-y divide-gray-100">
+              {visibleNotifications.map((note, idx) => (
+                <li
+                  key={note.id || idx}
+                  className="px-4 py-3 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer"
+                >
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                      <span className="text-white text-[10px] font-bold">
+                        {(note.from || 'S').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-semibold text-gray-500">
+                          {note.from || 'System'}
+                        </span>
+                        {note.timestamp && (
+                          <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                            <HiOutlineClock className="w-3 h-3 shrink-0" />
+                            {formatDate(note.timestamp)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-800 leading-snug">{note.message || 'No message'}</p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
+
         {/* Show More Button */}
         {!loading && !error && notifications.length > 5 && (
-          <div className="px-4 py-2 border-t border-gray-100 text-center">
+          <div className="p-3 border-t border-gray-100 text-center">
             <button
-              className="text-blue-600 hover:underline font-medium"
+              className="w-full py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-sm hover:shadow-md"
               onClick={() => {
                 onClose();
                 navigate("/notifications");
               }}
             >
-              Show More
+              View All Notifications
             </button>
           </div>
         )}
