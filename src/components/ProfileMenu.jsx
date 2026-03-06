@@ -30,7 +30,7 @@ export default function ProfileMenu({ onLogout }) {
         className="group"
       >
         <div className="w-9 h-9 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white font-bold text-base ring-2 ring-white/30 group-hover:ring-purple-300 transition-all duration-200 shadow-md">
-          {user.userName ? user.userName.charAt(0).toUpperCase() : "U"}
+          <HiOutlineUser className="w-5 h-5" />
         </div>
       </button>
 
@@ -45,10 +45,10 @@ export default function ProfileMenu({ onLogout }) {
                 {user.userName ? user.userName.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="min-w-0">
-                <p className="text-white font-semibold text-sm truncate">
+                <p className="text-white font-semibold text-sm whitespace-normal break-words leading-tight">
                   {user.firstName || ""} {user.lastName || ""}
                 </p>
-                <p className="text-white/60 text-xs truncate">
+                <p className="text-white/60 text-xs whitespace-normal break-words leading-tight mt-0.5">
                   @{user.userName || "user"}
                 </p>
               </div>
@@ -68,20 +68,20 @@ export default function ProfileMenu({ onLogout }) {
             {/* Profile Details (expandable) */}
             {showProfile && (
               <div className="px-5 py-3 bg-gray-50 border-y border-gray-100 space-y-1.5">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="font-medium text-gray-500 w-16">User</span>
-                  <span className="text-gray-800 truncate">{user.userName || "N/A"}</span>
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <span className="font-medium text-gray-500 w-16 shrink-0">User</span>
+                  <span className="text-gray-800 flex-1 whitespace-normal break-words">{user.userName || "N/A"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="font-medium text-gray-500 w-16">Name</span>
-                  <span className="text-gray-800 truncate">
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <span className="font-medium text-gray-500 w-16 shrink-0">Name</span>
+                  <span className="text-gray-800 flex-1 whitespace-normal break-words">
                     {user.firstName ? user.firstName : "N/A"}{" "}
                     {user.lastName || ""}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="font-medium text-gray-500 w-16">Email</span>
-                  <span className="text-gray-800 truncate">{user.email || "N/A"}</span>
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <span className="font-medium text-gray-500 w-16 shrink-0">Email</span>
+                  <span className="text-gray-800 flex-1 whitespace-normal break-all">{user.email || "N/A"}</span>
                 </div>
               </div>
             )}

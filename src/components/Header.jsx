@@ -204,7 +204,7 @@ export default function Header() {
     const visibleNotifications = notifications.slice(0, 5);
 
     return (
-      <div className="absolute right-0 mt-2 w-80 xl:w-88 md:w-80 bg-white rounded-2xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+      <div className="absolute right-0 max-md:-right-14 mt-2 w-80 xl:w-88 md:w-80 bg-white rounded-2xl border border-gray-200 shadow-lg z-50 overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-sm">
@@ -218,7 +218,7 @@ export default function Header() {
           )}
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors duration-200"
+            className="w-7 h-7 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-500 hover:text-red-700 transition-colors duration-200"
           >
             &times;
           </button>
@@ -318,50 +318,55 @@ export default function Header() {
     <>
 
       {isLoggingOut && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-4 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl px-10 py-8 flex flex-col items-center gap-5 animate-fade-in border border-white/20">
             {logoutMessage === "Logging out..." ? (
               <>
-                <svg
-                  className="animate-spin h-8 w-8 text-gray-600"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
-                </svg>
-                <span className="text-base font-medium text-gray-700">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-orange-500 animate-pulse"></div>
+                  <svg
+                    className="absolute inset-0 animate-spin h-16 w-16 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                </div>
+                <span className="text-lg font-semibold text-gray-700">
                   {logoutMessage}
                 </span>
               </>
             ) : (
               <>
-                <svg
-                  className="h-8 w-8 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                <span className="text-base font-medium text-green-600">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center">
+                  <svg
+                    className="h-8 w-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <span className="text-lg font-semibold text-green-600">
                   {logoutMessage}
                 </span>
               </>
@@ -591,16 +596,6 @@ export default function Header() {
                   >
                     My Accounts
                   </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    disabled={isLoggingOut}
-                    className="text-left mx-2 px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoggingOut ? "Logging out..." : "Logout"}
-                  </button>
                 </>
               )}
               {!user && (
