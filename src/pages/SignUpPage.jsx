@@ -136,7 +136,7 @@ export default function SignUpPage() {
           {/* Form */}
           <form className="p-6 space-y-5" onSubmit={handleSubmit}>
             {/* Google Login */}
-            <div className="flex justify-center [&>div]:w-full [&>div>div]:w-full [&_iframe]:!w-full">
+            <div className="google-auth-fullwidth w-full">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
