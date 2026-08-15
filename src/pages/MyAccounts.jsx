@@ -31,7 +31,7 @@ const fetchTop5Transactions = async (accountId) => {
       }
     );
     // Return top 5 transactions
-    return (data || []).slice(data.length-5, data.length).reverse();
+    return (data || []).slice(-5);
   } catch (err) {
     console.error('Failed to fetch transactions:', err);
     return [];

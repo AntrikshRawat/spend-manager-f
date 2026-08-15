@@ -13,7 +13,7 @@ const AddTransactionPopup = ({
 }) => {
   const user = useUserStore((u) => u.user);
   const [formData, setFormData] = useState({
-    amount: "",
+    amount: "0",
     where: "",
   });
   const [memberAmounts, setMemberAmounts] = useState(() =>
@@ -35,7 +35,7 @@ const AddTransactionPopup = ({
 
   const clearForm = (status) => {
     setFormData({
-      amount: "",
+      amount: "0",
       where: "",
     });
     setMemberAmounts(accountMembers.map(() => ""));
