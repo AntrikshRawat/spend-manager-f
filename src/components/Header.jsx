@@ -1,9 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HiBell, HiOutlineClock } from "react-icons/hi";
 import useUserStore from "../store/useUserStore";
 import formatDate from "../functions/formatDate";
-import socket from "../socket";
 import { toast } from "react-toastify";
 import axiosInstance from "../functions/axiosInstance";
 import useAccountStore from "../store/useAccountStore";
@@ -15,147 +14,84 @@ export default function Header() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState("");
-  const fetchAndUpdateAccounts = useAccountStore(a=>a.fetchAndUpdateAccounts);
-  const clearAccounts = useAccountStore(a=>a.clearAccounts);
-  
-  // Use ref to track if component is mounted
-  const isMountedRef = useRef(true);
+  const fetchAndUpdateAccounts = useAccountStore(
+    (a) => a.fetchAndUpdateAccounts,
+  );
+  const clearAccounts = useAccountStore((a) => a.clearAccounts);
+
   const logoutTimeoutRef = useRef(null);
-  
   const { user, fetchUserInfo, logOutUser, isLoggedIn } = useUserStore();
   const navigate = useNavigate();
 
-  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-      if (logoutTimeoutRef.current) {
-        clearTimeout(logoutTimeoutRef.current);
+    const handlePayment = (note) => {
+      fetchAndUpdateAccounts();
+      if (note?.message) {
+        toast.info(note.message);
       }
     };
-  }, []);
-
-  // Socket handlers with safety checks
-  const handleConnect = useCallback(() => {
-    if (socket && user?._id && isMountedRef.current) {
-      socket.emit("join_room", user?._id);
-    }
-  }, [user?._id]);
-
-  const handleAccount = useCallback((note) => {
-    if (!isMountedRef.current) return;
-    fetchAndUpdateAccounts();
-       
-    try {
+    const handleAccount = (note) => {
+      fetchAndUpdateAccounts();
       if (note?.message) {
         toast.info(note.message);
       }
       if (!note.relatedAccount) {
         navigate("/my-accounts");
       }
-    } catch (error) {
-      console.error("Error handling account notification:", error);
-    }
-  }, [navigate,fetchAndUpdateAccounts]);
-
-  const handlePayment = useCallback((note) => {
-    if (!isMountedRef.current) return;
-    
-    fetchAndUpdateAccounts();
-
-    try {
-      if (note?.message) {
-        toast.info(note.message);
-      }
-    } catch (error) {
-      console.error("Error handling payment notification:", error);
-    }
-  }, [fetchAndUpdateAccounts]);
-
-  // Socket effect with proper dependencies and cleanup
-  useEffect(() => {
-    if (!socket || !user?._id || !isMountedRef.current) return;
-
-    socket.on("connect", handleConnect);
-    socket.on("account-notification", handleAccount);
-    socket.on("payment-notification", handlePayment);
-
-    // Emit join room if already connected
-    if (socket.connected) {
-      handleConnect();
-    }
-
-    return () => {
-      if (socket) {
-        socket.off("connect", handleConnect);
-        socket.off("account-notification", handleAccount);
-        socket.off("payment-notification", handlePayment);
-      }
     };
-  }, [user?._id, handleConnect, handleAccount, handlePayment]);
+    window.addEventListener("account-notification", handleAccount);
+    window.addEventListener("payment-notification", handlePayment);
+  }, []);
 
   useEffect(() => {
     const getUser = async () => {
-      if (!isMountedRef.current) return;
-       await fetchUserInfo();
+      await fetchUserInfo();
     };
-    
+
     if (!user && isLoggedIn) {
-         getUser();
+      getUser();
     }
   }, [fetchUserInfo, user, isLoggedIn]);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!isMountedRef.current) return;
       const currentScrollY = window.scrollY;
       setIsScrolled(currentScrollY > 20);
     };
-    
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMobileMenu = () => {
-    if (!isMountedRef.current) return;
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const toggleNotifications = () => {
-    if (!isMountedRef.current) return;
+
     setIsNotificationOpen(!isNotificationOpen);
   };
 
   const handleLogout = async () => {
-    if (!isMountedRef.current) return;
-    
     setIsLoggingOut(true);
     setLogoutMessage("Logging out...");
     try {
       await logOutUser();
       clearAccounts();
-      
-      if (!isMountedRef.current) return;
-      
+
       setLogoutMessage("Logged out successfully!");
-      
+
       logoutTimeoutRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
           setIsLoggingOut(false);
           navigate("/login");
-        }
       }, 1000);
     } catch (error) {
       console.error("Logout error:", error);
-      
-      if (!isMountedRef.current) return;
-      
+
       setLogoutMessage("Failed to log out. Please try again.");
-      
+
       logoutTimeoutRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
           setIsLoggingOut(false);
-        }
       }, 2000);
     }
   };
@@ -169,34 +105,26 @@ export default function Header() {
 
     useEffect(() => {
       const fetchNotifications = async () => {
-        if (!isMountedRef.current) return;
-        
+
         setLoading(true);
         setError(null);
-        
+
         try {
           const response = await axiosInstance.get(
             `${import.meta.env.VITE_BACKEND_URL}/notifications`,
             {
               withCredentials: true,
-            }
+            },
           );
-          
-          if (isMountedRef.current) {
             setNotifications(response.data || []);
-          }
         } catch (err) {
           console.error("Error fetching notifications:", err);
-          if (isMountedRef.current) {
             setError("Failed to load notifications");
-          }
         } finally {
-          if (isMountedRef.current) {
             setLoading(false);
-          }
         }
       };
-      
+
       fetchNotifications();
     }, []);
 
@@ -210,7 +138,9 @@ export default function Header() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-sm">
             <HiBell className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-sm font-bold text-gray-800 flex-1">Notifications</h3>
+          <h3 className="text-sm font-bold text-gray-800 flex-1">
+            Notifications
+          </h3>
           {!loading && !error && visibleNotifications.length > 0 && (
             <span className="text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
               {notifications.length}
@@ -256,8 +186,12 @@ export default function Header() {
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                 <HiBell className="w-6 h-6 text-gray-400" />
               </div>
-              <p className="text-gray-500 text-sm font-medium">No notifications yet</p>
-              <p className="text-gray-400 text-xs mt-1">Activity updates will appear here.</p>
+              <p className="text-gray-500 text-sm font-medium">
+                No notifications yet
+              </p>
+              <p className="text-gray-400 text-xs mt-1">
+                Activity updates will appear here.
+              </p>
             </div>
           )}
 
@@ -272,13 +206,13 @@ export default function Header() {
                   <div className="flex items-start gap-2.5">
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
                       <span className="text-white text-[10px] font-bold">
-                        {(note.from || 'S').charAt(0).toUpperCase()}
+                        {(note.from || "S").charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <span className="text-xs font-semibold text-gray-500">
-                          {note.from || 'System'}
+                          {note.from || "System"}
                         </span>
                         {note.timestamp && (
                           <span className="flex items-center gap-1 text-[10px] text-gray-400">
@@ -287,7 +221,9 @@ export default function Header() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-800 leading-snug">{note.message || 'No message'}</p>
+                      <p className="text-sm text-gray-800 leading-snug">
+                        {note.message || "No message"}
+                      </p>
                     </div>
                   </div>
                 </li>
@@ -316,7 +252,6 @@ export default function Header() {
 
   return (
     <>
-
       {isLoggingOut && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md">
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl px-10 py-8 flex flex-col items-center gap-5 animate-fade-in border border-white/20">
@@ -383,7 +318,7 @@ export default function Header() {
         } ${
           isLoggingOut ? "filter blur-sm pointer-events-none select-none" : ""
         } rounded-2xl w-[98%] max-w-7xl`}
-        style={{ boxShadow: 'inset 0 2px 8px rgba(0, 0, 0, 0.1)' }}
+        style={{ boxShadow: "inset 0 2px 8px rgba(0, 0, 0, 0.1)" }}
       >
         <nav className="px-6 py-4">
           <div className="flex items-center justify-between">
@@ -400,7 +335,13 @@ export default function Header() {
                 }`}
               >
                 Spend
-                <p className={`inline ${isScrolled ? "text-gray-900":"text-emerald-400"}`}>MNR</p>
+                <p
+                  className={`inline ${
+                    isScrolled ? "text-gray-900" : "text-emerald-400"
+                  }`}
+                >
+                  MNR
+                </p>
               </Link>
             </div>
 
@@ -453,9 +394,11 @@ export default function Header() {
                           : "text-white hover:bg-white/10"
                       }`}
                     >
-                      <HiBell className={`w-6 h-6 ${
-                        isScrolled ? "text-orange-500" : "text-white"
-                      }`} />
+                      <HiBell
+                        className={`w-6 h-6 ${
+                          isScrolled ? "text-orange-500" : "text-white"
+                        }`}
+                      />
                     </button>
                     {isNotificationOpen && (
                       <NotificationDropdown onClose={toggleNotifications} />
@@ -504,9 +447,11 @@ export default function Header() {
                         : "text-white hover:bg-white/10"
                     }`}
                   >
-                    <HiBell className={`w-6 h-6 ${
-                      isScrolled ? "text-orange-500" : "text-white"
-                    }`} />
+                    <HiBell
+                      className={`w-6 h-6 ${
+                        isScrolled ? "text-orange-500" : "text-white"
+                      }`}
+                    />
                   </button>
                   {isNotificationOpen && (
                     <NotificationDropdown onClose={toggleNotifications} />

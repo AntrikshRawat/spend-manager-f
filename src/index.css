@@ -61,17 +61,3 @@
   background: #7288aa;
   border-radius: 20px;
 }
-
-/* Keep Google auth button full width across all render modes. */
-.google-auth-fullwidth {
-  width: 100%;
-}
-
-.google-auth-fullwidth > div,
-.google-auth-fullwidth > div > div,
-.google-auth-fullwidth iframe,
-.google-auth-fullwidth [role="button"] {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-}
