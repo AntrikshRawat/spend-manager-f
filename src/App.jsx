@@ -31,6 +31,7 @@ export default function App() {
 
     socket.on("account-notification", notificationFunction);
     socket.on("payment-notification", notificationFunction);
+    socket.on("reminder-notification", notificationFunction);
 
     return () => {
       socket.off("account-update", updateFunction);

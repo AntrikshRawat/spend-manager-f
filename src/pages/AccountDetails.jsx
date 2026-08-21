@@ -8,6 +8,7 @@ import {
   HiOutlineUsers,
   HiOutlineDocumentText,
 } from "react-icons/hi";
+import { HiBellAlert } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AddTransactionPopup from "../components/AddTransactionPopup";
@@ -36,29 +37,34 @@ const AccountDetails = () => {
   const [showSummaryPopup, setShowSummaryPopup] = useState(false);
   const [paidSpendSummery, setPaidSpendSummery] = useState({});
   const [paidSpendLoading, setPaidSpendLoading] = useState(true);
+  const [reminderTimeout, setReminderTimeout] = useState(0);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-  const fetchMembersName = useCallback(async (userIds) => {
-    try {
-      const { data } = await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/v1/usernames`,
-        {
-          userIds,
-        },
-        {
-          withCredentials: true,
-        },
-      );
-      setMembers([...data]);
-    } catch (err) {
-      console.error("Failed to fetch MembersName", err);
-    }
-  }, []);
+  const fetchMembersName = useCallback(
+    async (userIds) => {
+      try {
+        const { data } = await axiosInstance.post(
+          `${backendUrl}/auth/v1/usernames`,
+          {
+            userIds,
+          },
+          {
+            withCredentials: true,
+          },
+        );
+        setMembers([...data]);
+      } catch (err) {
+        console.error("Failed to fetch MembersName", err);
+      }
+    },
+    [backendUrl],
+  );
 
   const fetchUserPaidSpend = useCallback(async (accountId, currentMembers) => {
     try {
       setPaidSpendLoading(true);
       const { data } = await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/payment/paidspend`,
+        `${backendUrl}/payment/paidspend`,
         { accountMembers: currentMembers },
         {
           params: { accountId: accountId },
@@ -75,34 +81,33 @@ const AccountDetails = () => {
     }
   }, []);
 
-  const fetchAccountDetails = useCallback(
-    async () => {
-      try {
-        setAccount({});
-        setIsFetching(true);
-        const { data } = await axiosInstance.post(
-          `${import.meta.env.VITE_BACKEND_URL}/account/details`,
-          {
-            acId,
-          },
-          {
-            withCredentials: true,
-          },
-        );
-        if (!data || !data?._id) {
-          navigate("/my-accounts");
-          return;
-        }
-        setAccount(data);
-        if (data.accountType === "shared") {
-          await fetchMembersName(data.accountMembers);
-        }
-      } catch {
+  const fetchAccountDetails = useCallback(async () => {
+    try {
+      setAccount({});
+      setIsFetching(true);
+      const { data } = await axiosInstance.post(
+        `${backendUrl}/account/details`,
+        {
+          acId,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      if (!data || !data?._id) {
         navigate("/my-accounts");
-      } finally {
-        setIsFetching(false);
+        return;
       }
-  }, [acId, navigate, fetchMembersName]);
+      setAccount(data);
+      if (data.accountType === "shared") {
+        await fetchMembersName(data.accountMembers);
+      }
+    } catch {
+      navigate("/my-accounts");
+    } finally {
+      setIsFetching(false);
+    }
+  }, [acId, navigate, fetchMembersName, backendUrl]);
 
   const paymentEventHandler = useCallback(() => {
     fetchAccountDetails();
@@ -117,15 +122,15 @@ const AccountDetails = () => {
     };
   }, [paymentEvent, fetchAccountDetails, paymentEventHandler]);
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchAccountDetails();
-  },[fetchAccountDetails]);
+  }, [fetchAccountDetails]);
 
   useEffect(() => {
     if (account?._id && account.accountType === "shared") {
-      fetchUserPaidSpend(account._id,members);
+      fetchUserPaidSpend(account._id, members);
     }
-  }, [account?._id, account?.accountType,members, fetchUserPaidSpend]);
+  }, [account?._id, account?.accountType, members, fetchUserPaidSpend]);
 
   // Clear Transactions handler
   const handleClearTransactions = async () => {
@@ -134,7 +139,7 @@ const AccountDetails = () => {
     setLoading(true);
     try {
       const { data } = await axiosInstance.put(
-        `${import.meta.env.VITE_BACKEND_URL}/payment/clear`,
+        `${backendUrl}/payment/clear`,
         {},
         {
           params: { accountId: account?._id },
@@ -154,6 +159,34 @@ const AccountDetails = () => {
     }
   };
 
+  const handleRemindGroup = async () => {
+    if(reminderTimeout !== 0) {
+      toast.info("Reminder is Under Cooldown.");
+      return;
+    }
+    try {
+      const { data } = await axiosInstance.get(
+        `${backendUrl}/account/reminder`,
+        {
+          params: {
+            accountId: account?._id,
+          },
+        },
+      );
+      if (data?.msg) {
+        if (data?.status) toast.success(data.msg);
+        else toast.error(data.msg);
+      }
+      setReminderTimeout(Date.now());
+      setTimeout(() => {
+        setReminderTimeout(0);
+      }, 10000);
+    } catch (err) {
+      toast.error("Something Went Wrong.");
+      console.error(err);
+    }
+  };
+
   const handleAISummarizer = async () => {
     if (account.totalTransaction < 3) {
       toast.info("Minimum 5 transactions required for AI summary analysis");
@@ -164,7 +197,7 @@ const AccountDetails = () => {
     setShowSummaryPopup(true);
     try {
       const { data } = await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/userAccount/accountsummery`,
+        `${backendUrl}/userAccount/accountsummery`,
         {
           accountId: account?._id,
         },
@@ -351,6 +384,20 @@ const AccountDetails = () => {
             >
               <HiSparkles className="w-5 h-5" />
               <span>AI Summarizer</span>
+            </button>
+
+            {/* Reminder Button */}
+            <button
+              onClick={handleRemindGroup}
+              disabled={
+                !account ||
+                account?.totalTransaction == 0 ||
+                reminderTimeout !== 0
+              }
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-yellow-50 text-yellow-600 border border-yellow-200 hover:bg-yellow-100 hover:border-yellow-300 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <HiBellAlert className="w-5 h-5" />
+              <span>{reminderTimeout==0?"Send Reminder":"Under Cooldown..."}</span>
             </button>
           </div>
         </div>
