@@ -90,7 +90,6 @@ const AccountDetails = () => {
           },
         );
         if (!data || !data?._id) {
-          toast.error("No account found!");
           navigate("/my-accounts");
           return;
         }
@@ -99,7 +98,6 @@ const AccountDetails = () => {
           await fetchMembersName(data.accountMembers);
         }
       } catch {
-        toast.error("No account found");
         navigate("/my-accounts");
       } finally {
         setIsFetching(false);
@@ -111,13 +109,10 @@ const AccountDetails = () => {
   }, [fetchAccountDetails]);
 
   useEffect(() => {
-    const handler = () => {
-      window.dispatchEvent(paymentEvent);
-    };
-    window.addEventListener("updateEvent", handler);
+    window.addEventListener("updateEvent", paymentEventHandler);
     window.addEventListener("paymentUpdate", paymentEventHandler);
     return () => {
-      window.removeEventListener("updateEvent", handler);
+      window.removeEventListener("updateEvent", paymentEventHandler);
       window.removeEventListener("paymentUpdate", paymentEventHandler);
     };
   }, [paymentEvent, fetchAccountDetails, paymentEventHandler]);

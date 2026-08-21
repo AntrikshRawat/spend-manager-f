@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axiosInstance from "../functions/axiosInstance";
 import { persist } from "zustand/middleware";
 import useAccountStore from "./useAccountStore";
+const loginUrl = `${import.meta.env.VITE_FRONTEND_URL}/login`;
 
 const useUserStore = create(
   persist(
@@ -28,6 +29,7 @@ const useUserStore = create(
             user: null,
             isLoggedIn: false,
           });
+          window.location.replace(loginUrl);
         }
       },
 

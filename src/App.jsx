@@ -21,12 +21,11 @@ export default function App() {
     };
 
     const notificationFunction = (note) => {
-      const event = new CustomEvent("notificationEvent", note);
+      const event = new CustomEvent("notificationEvent", { detail: note });
       window.dispatchEvent(event);
     };
 
     socket.emit("join_room", user?._id);
-
     socket.on("account-update", updateFunction);
     socket.on("payment-update", updateFunction);
 

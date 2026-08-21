@@ -24,7 +24,8 @@ export default function Header() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleNotification = (note) => {
+    const handleNotification = (e) => {
+      const note = e.detail;
       fetchAndUpdateAccounts();
       if (note?.message) {
         toast.info(note.message);
