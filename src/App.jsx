@@ -9,14 +9,11 @@ import socket from "./socket";
 
 export default function App() {
   const user = useUserStore((u) => u.user);
-  useEffect(() => {
-    if (user && user._id) {
-      subscribeUser();
-    }
-  }, [user]);
 
   useEffect(() => {
     if (!user || !user?._id) return;
+
+    subscribeUser();
 
     const updateFunction = () => {
       const event = new CustomEvent("updateEvent");
@@ -24,8 +21,8 @@ export default function App() {
     };
 
     const notificationFunction = (note) => {
-      const event = new CustomEvent("notificationEvent");
-      window.dispatchEvent(event,note);
+      const event = new CustomEvent("notificationEvent", note);
+      window.dispatchEvent(event);
     };
 
     socket.emit("join_room", user?._id);
@@ -35,8 +32,15 @@ export default function App() {
 
     socket.on("account-notification", notificationFunction);
     socket.on("payment-notification", notificationFunction);
+
+    return () => {
+      socket.off("account-update", updateFunction);
+      socket.off("payment-update", updateFunction);
+      socket.off("account-notification", notificationFunction);
+      socket.off("payment-notification", notificationFunction);
+    };
   }, [user]);
-  
+
   return (
     <div className="min-h-screen bg-gray-100">
       <ToastContainer
