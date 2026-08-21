@@ -27,11 +27,6 @@ const AccountDetails = () => {
   const paymentEvent = useMemo(() => {
     return new CustomEvent("paymentUpdate");
   }, []);
-  const paymentEventHandler = useCallback(() => {
-    fetchAccountDetails();
-    fetchMembersName();
-    fetchUserPaidSpend();
-  }, [fetchAccountDetails, fetchMembersName, fetchUserPaidSpend]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -42,7 +37,45 @@ const AccountDetails = () => {
   const [paidSpendSummery, setPaidSpendSummery] = useState({});
   const [paidSpendLoading, setPaidSpendLoading] = useState(true);
 
-  const fetchAccountDetails = useCallback(() => {
+  const fetchMembersName = useCallback(async (userIds) => {
+    try {
+      const { data } = await axiosInstance.post(
+        `${import.meta.env.VITE_BACKEND_URL}/auth/v1/usernames`,
+        {
+          userIds,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      setMembers([...data]);
+    } catch (err) {
+      console.error("Failed to fetch MembersName", err);
+    }
+  }, []);
+
+  const fetchUserPaidSpend = useCallback(async (accountId, currentMembers) => {
+    try {
+      setPaidSpendLoading(true);
+      const { data } = await axiosInstance.post(
+        `${import.meta.env.VITE_BACKEND_URL}/payment/paidspend`,
+        { accountMembers: currentMembers },
+        {
+          params: { accountId: accountId },
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        },
+      );
+      setPaidSpendSummery(data);
+    } catch (err) {
+      console.error("Failed to fetch user paid-spend data:", err);
+    } finally {
+      // This will now reliably fire
+      setPaidSpendLoading(false);
+    }
+  }, []);
+
+  const fetchAccountDetails = useCallback(
     async () => {
       try {
         setAccount({});
@@ -71,48 +104,11 @@ const AccountDetails = () => {
       } finally {
         setIsFetching(false);
       }
-    };
   }, [acId, navigate, fetchMembersName]);
 
-  const fetchMembersName = useCallback(async (userIds) => {
-    try {
-      const { data } = await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/v1/usernames`,
-        {
-          userIds,
-        },
-        {
-          withCredentials: true,
-        },
-      );
-      setMembers([...data]);
-    } catch (err) {
-      console.error("Failed to fetch MembersName", err);
-    }
-  }, []);
-
-  const fetchUserPaidSpend = useCallback(async () => {
-    if (!account?._id || !user?.userName || account.accountType === "Shared")
-      return;
-
-    try {
-      setPaidSpendLoading(true);
-      const { data } = await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/payment/paidspend`,
-        { accountMembers: [...members] },
-        {
-          params: { accountId: account._id },
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        },
-      );
-      setPaidSpendSummery(data);
-    } catch (err) {
-      console.error("Failed to fetch user paid-spend data:", err);
-    } finally {
-      setPaidSpendLoading(false);
-    }
-  }, [account._id, members, user?.userName, account.accountType]);
+  const paymentEventHandler = useCallback(() => {
+    fetchAccountDetails();
+  }, [fetchAccountDetails]);
 
   useEffect(() => {
     const handler = () => {
@@ -120,12 +116,21 @@ const AccountDetails = () => {
     };
     window.addEventListener("updateEvent", handler);
     window.addEventListener("paymentUpdate", paymentEventHandler);
-    fetchAccountDetails();
     return () => {
       window.removeEventListener("updateEvent", handler);
       window.removeEventListener("paymentUpdate", paymentEventHandler);
     };
   }, [paymentEvent, fetchAccountDetails, paymentEventHandler]);
+
+  useEffect(()=>{
+    fetchAccountDetails();
+  },[fetchAccountDetails]);
+
+  useEffect(() => {
+    if (account?._id && account.accountType === "shared") {
+      fetchUserPaidSpend(account._id,members);
+    }
+  }, [account?._id, account?.accountType,members, fetchUserPaidSpend]);
 
   // Clear Transactions handler
   const handleClearTransactions = async () => {
@@ -377,7 +382,7 @@ const AccountDetails = () => {
               accountId={account?._id}
               accountType={account.accountType}
               accountMembers={members}
-              paymentEvent = {paymentEvent}
+              paymentEvent={paymentEvent}
             />
           </div>
         </div>
