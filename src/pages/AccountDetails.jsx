@@ -9,14 +9,13 @@ import {
   HiOutlineDocumentText,
 } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AddTransactionPopup from "../components/AddTransactionPopup";
 import axiosInstance from "../functions/axiosInstance";
 import TransactionsHistory from "../components/TransactionsHistory";
 import { useNavigate } from "react-router-dom";
 import AccountPaidSpend from "../components/AccountPaidSpend";
 import useUserStore from "../store/useUserStore";
-import socket from "../socket";
 import { toast } from "react-toastify";
 import ReportViewer from "../components/ReportViewer";
 
@@ -25,8 +24,15 @@ const AccountDetails = () => {
   const [members, setMembers] = useState([]);
   let { acId } = useParams();
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
+  const paymentEvent = useMemo(() => {
+    return new CustomEvent("paymentUpdate");
+  }, []);
+  const paymentEventHandler = useCallback(() => {
+    fetchAccountDetails();
+    fetchMembersName();
+    fetchUserPaidSpend();
+  }, [fetchAccountDetails, fetchMembersName, fetchUserPaidSpend]);
   const navigate = useNavigate();
-  const [transactionsRefreshKey, setTransactionsRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const user = useUserStore((u) => u.user);
@@ -36,50 +42,59 @@ const AccountDetails = () => {
   const [paidSpendSummery, setPaidSpendSummery] = useState({});
   const [paidSpendLoading, setPaidSpendLoading] = useState(true);
 
-  const fetchAccountDetails = async () => {
+  const fetchAccountDetails = useCallback(() => {
+    async () => {
+      try {
+        setAccount({});
+        setIsFetching(true);
+        const { data } = await axiosInstance.post(
+          `${import.meta.env.VITE_BACKEND_URL}/account/details`,
+          {
+            acId,
+          },
+          {
+            withCredentials: true,
+          },
+        );
+        if (!data || !data?._id) {
+          toast.error("No account found!");
+          navigate("/my-accounts");
+          return;
+        }
+        setAccount(data);
+        if (data.accountType === "shared") {
+          await fetchMembersName(data.accountMembers);
+        }
+      } catch {
+        toast.error("No account found");
+        navigate("/my-accounts");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+  }, [acId, navigate, fetchMembersName]);
+
+  const fetchMembersName = useCallback(async (userIds) => {
     try {
-      setAccount({});
-      setIsFetching(true);
       const { data } = await axiosInstance.post(
-        `${import.meta.env.VITE_BACKEND_URL}/account/details`,
+        `${import.meta.env.VITE_BACKEND_URL}/auth/v1/usernames`,
         {
-          acId,
+          userIds,
         },
         {
           withCredentials: true,
         },
       );
-      if (!data || !data?._id) {
-        toast.error("No account found!");
-        navigate("/my-accounts");
-        return;
-      }
-      setAccount(data);
-      if (data.accountType === "shared") {
-        await fetchMembersName(data.accountMembers);
-      }
-    } catch {
-      toast.error("No account found");
-      navigate("/my-accounts");
-    } finally {
-      setIsFetching(false);
+      setMembers([...data]);
+    } catch (err) {
+      console.error("Failed to fetch MembersName", err);
     }
-  };
-  const fetchMembersName = async (userIds) => {
-    const { data } = await axiosInstance.post(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/v1/usernames`,
-      {
-        userIds,
-      },
-      {
-        withCredentials: true,
-      },
-    );
-    setMembers([...data]);
-  };
+  }, []);
 
-  const fetchUserPaidSpend = async () => {
-    if (!account?._id || !user?.userName) return;
+  const fetchUserPaidSpend = useCallback(async () => {
+    if (!account?._id || !user?.userName || account.accountType === "Shared")
+      return;
+
     try {
       setPaidSpendLoading(true);
       const { data } = await axiosInstance.post(
@@ -92,40 +107,25 @@ const AccountDetails = () => {
         },
       );
       setPaidSpendSummery(data);
-      // const paid = data?.paidSummary?.[user.userName] || 0;
-      // const spend = data?.expenseSummary?.[user.userName] || 0;
-      // setUserDue(paid < spend ? spend - paid : 0);
     } catch (err) {
       console.error("Failed to fetch user paid-spend data:", err);
     } finally {
       setPaidSpendLoading(false);
     }
-  };
+  }, [account._id, members, user?.userName, account.accountType]);
 
   useEffect(() => {
-    socket?.on("payment-update", () => {
-      setTransactionsRefreshKey((k) => k + 1);
-      fetchAccountDetails();
-    });
-    return () => {
-      socket?.off("payment-update");
+    const handler = () => {
+      window.dispatchEvent(paymentEvent);
     };
-  });
-
-  useEffect(() => {
+    window.addEventListener("updateEvent", handler);
+    window.addEventListener("paymentUpdate", paymentEventHandler);
     fetchAccountDetails();
-  }, []);
-
-  useEffect(() => {
-    if (
-      account?._id &&
-      account.accountType === "shared" &&
-      user?.userName &&
-      members.length > 1
-    ) {
-      fetchUserPaidSpend();
-    }
-  }, [account?._id, user?.userName, transactionsRefreshKey, members]);
+    return () => {
+      window.removeEventListener("updateEvent", handler);
+      window.removeEventListener("paymentUpdate", paymentEventHandler);
+    };
+  }, [paymentEvent, fetchAccountDetails, paymentEventHandler]);
 
   // Clear Transactions handler
   const handleClearTransactions = async () => {
@@ -143,7 +143,7 @@ const AccountDetails = () => {
         },
       );
       toast.success(data.message);
-      setTransactionsRefreshKey((k) => k + 1);
+      window.dispatchEvent(paymentEvent);
       fetchAccountDetails();
     } catch (err) {
       toast.error(
@@ -155,7 +155,7 @@ const AccountDetails = () => {
   };
 
   const handleAISummarizer = async () => {
-    if (account.totalTransaction < 5) {
+    if (account.totalTransaction < 3) {
       toast.info("Minimum 5 transactions required for AI summary analysis");
       return;
     }
@@ -228,13 +228,15 @@ const AccountDetails = () => {
                 {!isFetching ? account?.accountName : "Loading..."}
               </h1>
               {account?.accountType && (
-                <span className={`inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold shadow-md ${
-                  account.accountType === 'personal'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
-                    : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                }`}>
+                <span
+                  className={`inline-flex items-center gap-1.5 mt-1 px-3 py-1 rounded-full text-xs font-bold shadow-md ${
+                    account.accountType === "personal"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+                      : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+                  }`}
+                >
                   <HiSparkles className="w-3 h-3" />
-                  {account.accountType === 'personal' ? 'Personal' : 'Shared'}
+                  {account.accountType === "personal" ? "Personal" : "Shared"}
                 </span>
               )}
             </div>
@@ -249,7 +251,9 @@ const AccountDetails = () => {
                   <div className="p-2 rounded-xl bg-green-50">
                     <HiOutlineCurrencyRupee className="w-6 h-6 text-green-500" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500">Total Spend</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Spend
+                  </p>
                 </div>
                 <p className="text-3xl font-bold text-gray-800">
                   ₹{!isFetching ? account.totalSpend : "-"}
@@ -279,7 +283,9 @@ const AccountDetails = () => {
                   <div className="p-2 rounded-xl bg-purple-50">
                     <HiOutlineDocumentText className="w-6 h-6 text-purple-500" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500">Total Transactions</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Transactions
+                  </p>
                 </div>
                 <p className="text-3xl font-bold text-gray-800">
                   {!isFetching ? account.totalTransaction : "-"}
@@ -359,7 +365,7 @@ const AccountDetails = () => {
                   Transaction History
                 </h2>
                 <button
-                  onClick={() => setTransactionsRefreshKey((k) => k + 1)}
+                  onClick={() => window.dispatchEvent(paymentEvent)}
                   className="ml-2 p-2 rounded-xl bg-gray-100 hover:bg-blue-50 text-blue-500 hover:text-blue-600 transition-all duration-200"
                   title="Refresh Transactions"
                 >
@@ -369,13 +375,9 @@ const AccountDetails = () => {
             </div>
             <TransactionsHistory
               accountId={account?._id}
-              refreshKey={transactionsRefreshKey}
-              newDeletion={() => {
-                setTransactionsRefreshKey((k) => k + 1);
-                fetchAccountDetails();
-              }}
               accountType={account.accountType}
               accountMembers={members}
+              paymentEvent = {paymentEvent}
             />
           </div>
         </div>
@@ -394,8 +396,12 @@ const AccountDetails = () => {
                     <HiSparkles className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">AI Account Summary</h2>
-                    <p className="text-purple-100 text-sm">Powered by AI analysis</p>
+                    <h2 className="text-xl font-bold text-white">
+                      AI Account Summary
+                    </h2>
+                    <p className="text-purple-100 text-sm">
+                      Powered by AI analysis
+                    </p>
                   </div>
                 </div>
                 <button
@@ -493,7 +499,7 @@ const AccountDetails = () => {
           setIsAddTransactionOpen(false);
           if (value) {
             toast.success("Transaction Added Successfully.");
-            setTransactionsRefreshKey((k) => k + 1);
+            window.dispatchEvent(paymentEvent);
             fetchAccountDetails();
           }
         }}

@@ -1,5 +1,8 @@
-const AccountPaidSpend = ({accountMembers,paidSpendLoading,paidSpendSummery}) => {
-
+const AccountPaidSpend = ({
+  accountMembers,
+  paidSpendLoading,
+  paidSpendSummery,
+}) => {
   const paidSummary = paidSpendSummery?.paidSummary || {};
   const expenseSummary = paidSpendSummery?.expenseSummary || {};
   return (
@@ -28,7 +31,7 @@ const AccountPaidSpend = ({accountMembers,paidSpendLoading,paidSpendSummery}) =>
                     <div className="relative bg-gray-50 group-hover:bg-green-50 rounded-xl p-4 border border-gray-100 group-hover:border-green-200 flex flex-col items-center transition-all duration-300">
                       <div className="w-11 h-11 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-2.5 shadow-md">
                         <span className="text-white text-base font-bold">
-                          {member ? member?.charAt(0).toUpperCase() : '?'}
+                          {member ? member?.charAt(0).toUpperCase() : "?"}
                         </span>
                       </div>
                       <p className="text-sm font-semibold text-gray-800 mb-1 text-center truncate w-full">
@@ -56,7 +59,9 @@ const AccountPaidSpend = ({accountMembers,paidSpendLoading,paidSpendSummery}) =>
           {paidSpendLoading ? (
             <div className="flex flex-col items-center justify-center py-10">
               <div className="w-10 h-10 rounded-full border-4 border-purple-200 border-t-purple-500 animate-spin"></div>
-              <p className="text-gray-500 mt-3 text-sm">Loading spend data...</p>
+              <p className="text-gray-500 mt-3 text-sm">
+                Loading spend data...
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -70,7 +75,7 @@ const AccountPaidSpend = ({accountMembers,paidSpendLoading,paidSpendSummery}) =>
                     <div className="relative bg-gray-50 group-hover:bg-purple-50 rounded-xl p-4 border border-gray-100 group-hover:border-purple-200 flex flex-col items-center transition-all duration-300">
                       <div className="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-2.5 shadow-md">
                         <span className="text-white text-base font-bold">
-                          {member ? member?.charAt(0).toUpperCase() : '?'}
+                          {member ? member?.charAt(0).toUpperCase() : "?"}
                         </span>
                       </div>
                       <p className="text-sm font-semibold text-gray-800 mb-1 text-center truncate w-full">

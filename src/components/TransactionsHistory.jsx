@@ -1,68 +1,86 @@
-import { useEffect, useState } from 'react';
-import axiosInstance from '../functions/axiosInstance';
-import formatDate from '../functions/formatDate';
-import { HiTrash, HiOutlineClock, HiOutlineCurrencyRupee } from 'react-icons/hi';
-import useUserStore from '../store/useUserStore';
-import { toast } from 'react-toastify';
-import useAccountStore from '../store/useAccountStore';
-import {TransactionSkeleton} from "../Skeletons/TransactionSkeleton";
+import { useCallback, useEffect, useState } from "react";
+import axiosInstance from "../functions/axiosInstance";
+import formatDate from "../functions/formatDate";
+import {
+  HiTrash,
+  HiOutlineClock,
+  HiOutlineCurrencyRupee,
+} from "react-icons/hi";
+import useUserStore from "../store/useUserStore";
+import { toast } from "react-toastify";
+import { TransactionSkeleton } from "../Skeletons/TransactionSkeleton";
 
-const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType, accountMembers = [] }) => {
+const TransactionsHistory = ({
+  accountId,
+  accountType,
+  accountMembers = [],
+  paymentEvent
+}) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
-  const user = useUserStore(u=>u.user);
-  const fetchAndUpdateAccounts = useAccountStore(s=>s.fetchAndUpdateAccounts);
+  const user = useUserStore((u) => u.user);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     setTransactions([]);
-    setError('');
+    setError("");
     try {
       const { data } = await axiosInstance.get(
         `${import.meta.env.VITE_BACKEND_URL}/payment`,
         {
-          params:{
-            accountId
+          params: {
+            accountId,
           },
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
-        }
+        },
       );
       setTransactions(data || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch transactions.');
+      setError(err.response?.data?.message || "Failed to fetch transactions.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [accountId]);
 
   useEffect(() => {
     if (accountId) fetchTransactions();
-    fetchAndUpdateAccounts();
-  }, [accountId, refreshKey,fetchAndUpdateAccounts]);
 
-  const handleDelete = async (transactionId,amount) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+    const handler = ()=>{
+      fetchTransactions();
+    };
+    window.addEventListener("paymentUpdate",handler);
+
+    return ()=>{
+      window.removeEventListener("paymentUpdate",handler);
+    }
+  }, [accountId, fetchTransactions]);
+
+  const handleDelete = async (transactionId, amount) => {
+    if (!window.confirm("Are you sure you want to delete this transaction?"))
+      return;
     setDeletingId(transactionId);
     try {
       await axiosInstance.delete(
         `${import.meta.env.VITE_BACKEND_URL}/payment/delete`,
         {
-          params:{
+          params: {
             amount,
             accountId,
-            paymentId:transactionId
+            paymentId: transactionId,
           },
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
-        }
+        },
       );
       toast.success("Transaction deleted successfully.");
-      newDeletion();
+      window.dispatchEvent(paymentEvent);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete transaction.');
+      toast.error(
+        err.response?.data?.message || "Failed to delete transaction.",
+      );
     } finally {
       setDeletingId(null);
     }
@@ -104,7 +122,9 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
           <HiOutlineCurrencyRupee className="w-8 h-8 text-gray-400" />
         </div>
         <p className="text-gray-500 font-medium">No transactions found.</p>
-        <p className="text-gray-400 text-sm mt-1">Transactions will appear here once added.</p>
+        <p className="text-gray-400 text-sm mt-1">
+          Transactions will appear here once added.
+        </p>
       </div>
     );
   }
@@ -116,38 +136,46 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
         <div className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
         <h2 className="text-lg font-bold text-gray-800">Transactions</h2>
         <span className="ml-auto text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-full">
-          {transactions.length} {transactions.length === 1 ? 'entry' : 'entries'}
+          {transactions.length}{" "}
+          {transactions.length === 1 ? "entry" : "entries"}
         </span>
       </div>
 
       {/* Table Header - Desktop */}
-      <div className={`hidden sm:grid ${accountType === 'personal' ? 'grid-cols-4' : 'grid-cols-6'} gap-4 px-6 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider`}>
-        {accountType !== 'personal' && <div>Paid By</div>}
+      <div
+        className={`hidden sm:grid ${
+          accountType === "personal" ? "grid-cols-4" : "grid-cols-6"
+        } gap-4 px-6 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider`}
+      >
+        {accountType !== "personal" && <div>Paid By</div>}
         <div>Amount</div>
         <div>Where</div>
         <div>Date & Time</div>
-        {accountType !== 'personal' && <div>Member Expenses</div>}
+        {accountType !== "personal" && <div>Member Expenses</div>}
         <div className="text-center">Action</div>
       </div>
 
       {/* Transaction List */}
       <ul className="divide-y divide-gray-100">
         {transactions.map((tx, idx) => (
-          <li
-            key={tx._id || idx}
-            className="group"
-          >
+          <li key={tx._id || idx} className="group">
             {/* Desktop View */}
-            <div className={`hidden sm:grid ${accountType === 'personal' ? 'sm:grid-cols-4' : 'sm:grid-cols-6'} gap-4 px-6 py-4 items-center hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300`}>
+            <div
+              className={`hidden sm:grid ${
+                accountType === "personal" ? "sm:grid-cols-4" : "sm:grid-cols-6"
+              } gap-4 px-6 py-4 items-center hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300`}
+            >
               {/* Paid By */}
-              {accountType !== 'personal' && (
+              {accountType !== "personal" && (
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-sm">
                     <span className="text-white text-xs font-bold">
                       {tx.paidBy?.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="font-semibold text-gray-800 text-sm truncate">{tx.paidBy}</span>
+                  <span className="font-semibold text-gray-800 text-sm truncate">
+                    {tx.paidBy}
+                  </span>
                 </div>
               )}
 
@@ -170,23 +198,31 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
               </div>
 
               {/* Member Expenses */}
-              {accountType !== 'personal' && (
+              {accountType !== "personal" && (
                 <div>
                   {tx.memberExpenses && tx.memberExpenses.length > 0 ? (
                     <div className="space-y-1">
                       {tx.memberExpenses.map((expense, expenseIdx) => (
-                        <div key={expenseIdx} className="flex justify-between items-center bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg text-xs">
+                        <div
+                          key={expenseIdx}
+                          className="flex justify-between items-center bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg text-xs"
+                        >
                           <span className="text-blue-700 font-medium truncate mr-2">
-                            {accountType === 'shared' && accountMembers[expenseIdx]
+                            {accountType === "shared" &&
+                            accountMembers[expenseIdx]
                               ? accountMembers[expenseIdx]
                               : `M${expenseIdx + 1}`}
                           </span>
-                          <span className="text-blue-900 font-bold whitespace-nowrap">₹{expense}</span>
+                          <span className="text-blue-900 font-bold whitespace-nowrap">
+                            ₹{expense}
+                          </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <span className="text-gray-400 text-xs italic">No expenses</span>
+                    <span className="text-gray-400 text-xs italic">
+                      No expenses
+                    </span>
                   )}
                 </div>
               )}
@@ -194,9 +230,11 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
               {/* Action */}
               <div className="flex justify-center">
                 <button
-                  onClick={() => handleDelete(tx._id,tx.amount)}
+                  onClick={() => handleDelete(tx._id, tx.amount)}
                   className="p-2.5 rounded-xl bg-red-50 border border-red-100 text-red-500 hover:bg-red-100 hover:border-red-200 hover:text-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-40 disabled:cursor-not-allowed"
-                  disabled={deletingId === tx._id || user?.userName !== tx.paidBy}
+                  disabled={
+                    deletingId === tx._id || user?.userName !== tx.paidBy
+                  }
                   title="Delete Transaction"
                 >
                   {deletingId === tx._id ? (
@@ -212,7 +250,7 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
             <div className="sm:hidden p-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300">
               <div className="flex items-start gap-3">
                 {/* Avatar / Icon */}
-                {accountType !== 'personal' ? (
+                {accountType !== "personal" ? (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-sm">
                     <span className="text-white text-sm font-bold">
                       {tx.paidBy?.charAt(0).toUpperCase()}
@@ -227,8 +265,10 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
                 {/* Details */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    {accountType !== 'personal' ? (
-                      <span className="font-semibold text-gray-800 text-sm truncate">{tx.paidBy}</span>
+                    {accountType !== "personal" ? (
+                      <span className="font-semibold text-gray-800 text-sm truncate">
+                        {tx.paidBy}
+                      </span>
                     ) : null}
                     <span className="font-bold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-lg text-sm ml-auto shrink-0">
                       ₹{tx.amount}
@@ -237,24 +277,34 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
 
                   {/* Where - Centered */}
                   <div className="text-center my-2">
-                    <span className="font-semibold text-gray-800 text-base">{tx.where}</span>
+                    <span className="font-semibold text-gray-800 text-base">
+                      {tx.where}
+                    </span>
                   </div>
 
                   {/* Member Expenses - Mobile */}
-                  {accountType !== 'personal' && tx.memberExpenses && tx.memberExpenses.length > 0 && (
-                    <div className="flex flex-col items-center gap-1.5 mb-2">
-                      {tx.memberExpenses.map((expense, expenseIdx) => (
-                        <div key={expenseIdx} className="flex items-center justify-between w-48 bg-blue-50 border border-blue-100 text-xs px-3 py-1.5 rounded-lg">
-                          <span className="text-blue-700 font-medium">
-                            {accountType === 'shared' && accountMembers[expenseIdx]
-                              ? accountMembers[expenseIdx]
-                              : `M${expenseIdx + 1}`}
-                          </span>
-                          <span className="text-blue-900 font-bold">₹{expense}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {accountType !== "personal" &&
+                    tx.memberExpenses &&
+                    tx.memberExpenses.length > 0 && (
+                      <div className="flex flex-col items-center gap-1.5 mb-2">
+                        {tx.memberExpenses.map((expense, expenseIdx) => (
+                          <div
+                            key={expenseIdx}
+                            className="flex items-center justify-between w-48 bg-blue-50 border border-blue-100 text-xs px-3 py-1.5 rounded-lg"
+                          >
+                            <span className="text-blue-700 font-medium">
+                              {accountType === "shared" &&
+                              accountMembers[expenseIdx]
+                                ? accountMembers[expenseIdx]
+                                : `M${expenseIdx + 1}`}
+                            </span>
+                            <span className="text-blue-900 font-bold">
+                              ₹{expense}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                   {/* Date - Moved to last */}
                   <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mt-2">
@@ -265,9 +315,11 @@ const TransactionsHistory = ({ accountId, refreshKey = 0,newDeletion,accountType
 
                 {/* Delete Button - Mobile */}
                 <button
-                  onClick={() => handleDelete(tx._id,tx.amount)}
+                  onClick={() => handleDelete(tx._id, tx.amount)}
                   className="p-2 rounded-xl bg-red-50 border border-red-100 text-red-500 hover:bg-red-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 self-center"
-                  disabled={deletingId === tx._id || user?.userName !== tx.paidBy}
+                  disabled={
+                    deletingId === tx._id || user?.userName !== tx.paidBy
+                  }
                   title="Delete Transaction"
                 >
                   {deletingId === tx._id ? (

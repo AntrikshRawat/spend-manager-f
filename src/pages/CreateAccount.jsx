@@ -124,11 +124,7 @@ export default function CreateAccount() {
       setCreateLoading(true);
       try {
         await createAccount(accountName, [], accountType);
-        navigate('/my-accounts',{
-          state:{
-            refresh:true
-          }
-        }); 
+        navigate('/my-accounts'); 
       } catch(err) {
         toast.error(err.message[0].msg || err.message);
       } finally {

@@ -24,13 +24,7 @@ export default function Header() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handlePayment = (note) => {
-      fetchAndUpdateAccounts();
-      if (note?.message) {
-        toast.info(note.message);
-      }
-    };
-    const handleAccount = (note) => {
+    const handleNotification = (note) => {
       fetchAndUpdateAccounts();
       if (note?.message) {
         toast.info(note.message);
@@ -39,8 +33,11 @@ export default function Header() {
         navigate("/my-accounts");
       }
     };
-    window.addEventListener("account-notification", handleAccount);
-    window.addEventListener("payment-notification", handlePayment);
+    window.addEventListener("notificationEvent", handleNotification);
+
+    return ()=>{
+      window.removeEventListener('notificationEvent',handleNotification)
+    }
   }, []);
 
   useEffect(() => {
