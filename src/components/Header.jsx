@@ -38,7 +38,7 @@ export default function Header() {
     return ()=>{
       window.removeEventListener('notificationEvent',handleNotification)
     }
-  }, []);
+  }, [fetchAndUpdateAccounts,navigate]);
 
   useEffect(() => {
     const getUser = async () => {

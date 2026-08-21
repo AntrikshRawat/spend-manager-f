@@ -13,7 +13,7 @@ export default function App() {
     if (user && user._id) {
       subscribeUser();
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!user || !user?._id) return;
@@ -23,9 +23,9 @@ export default function App() {
       window.dispatchEvent(event);
     };
 
-    const notificationFunction = () => {
+    const notificationFunction = (note) => {
       const event = new CustomEvent("notificationEvent");
-      window.dispatchEvent(event);
+      window.dispatchEvent(event,note);
     };
 
     socket.emit("join_room", user?._id);
