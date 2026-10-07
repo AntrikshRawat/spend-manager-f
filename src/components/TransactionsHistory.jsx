@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axiosInstance from "../functions/axiosInstance";
 import formatDate from "../functions/formatDate";
 import {
   HiTrash,
   HiOutlineClock,
   HiOutlineCurrencyRupee,
+  HiOutlineCalendar,
 } from "react-icons/hi";
 import useUserStore from "../store/useUserStore";
 import { toast } from "react-toastify";
@@ -14,13 +15,121 @@ const TransactionsHistory = ({
   accountId,
   accountType,
   accountMembers = [],
-  paymentEvent
+  paymentEvent,
+  onMonthChange,
+  selectedMonth: externalSelectedMonth,
+  onSelectMonth: externalOnSelectMonth,
 }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [internalSelectedMonth, setInternalSelectedMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+
+  const activeSelectedMonth =
+    externalSelectedMonth !== undefined
+      ? externalSelectedMonth
+      : internalSelectedMonth;
+
+  const handleSelectMonth = (val) => {
+    if (externalOnSelectMonth) {
+      externalOnSelectMonth(val);
+    } else {
+      setInternalSelectedMonth(val);
+    }
+  };
+
   const user = useUserStore((u) => u.user);
+
+  // Derive available months from transactions and filter
+  const { availableMonths, filteredTransactions } = useMemo(() => {
+    const monthMap = new Map();
+    const fullMonthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const shortMonthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    // Always ensure current month is present in the list
+    const now = new Date();
+    const currKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    monthMap.set(currKey, {
+      key: currKey,
+      label: `${shortMonthNames[now.getMonth()]} ${now.getFullYear()}`,
+      fullName: `${fullMonthNames[now.getMonth()]} ${now.getFullYear()}`,
+      year: now.getFullYear(),
+      month: now.getMonth(),
+    });
+
+    transactions.forEach((tx) => {
+      if (!tx.date) return;
+      const d = new Date(tx.date);
+      if (isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (!monthMap.has(key)) {
+        monthMap.set(key, {
+          key,
+          label: `${shortMonthNames[d.getMonth()]} ${d.getFullYear()}`,
+          fullName: `${fullMonthNames[d.getMonth()]} ${d.getFullYear()}`,
+          year: d.getFullYear(),
+          month: d.getMonth(),
+        });
+      }
+    });
+
+    // Sort by most recent first
+    const sorted = Array.from(monthMap.values()).sort((a, b) => {
+      if (b.year !== a.year) return b.year - a.year;
+      return b.month - a.month;
+    });
+
+    const filtered = transactions.filter((tx) => {
+      if (!tx.date) return false;
+      const d = new Date(tx.date);
+      if (isNaN(d.getTime())) return false;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === activeSelectedMonth;
+    });
+
+    return { availableMonths: sorted, filteredTransactions: filtered };
+  }, [transactions, activeSelectedMonth]);
+
+  const monthSpend = useMemo(() => {
+    return filteredTransactions.reduce(
+      (sum, tx) => sum + (Number(tx.amount) || 0),
+      0
+    );
+  }, [filteredTransactions]);
+
+  // Report month stats up to parent component
+  useEffect(() => {
+    if (onMonthChange && availableMonths.length > 0) {
+      const active =
+        availableMonths.find((m) => m.key === activeSelectedMonth) ||
+        availableMonths[0];
+      if (active) {
+        onMonthChange({
+          monthKey: active.key,
+          monthLabel: active.label,
+          monthName: active.fullName || active.label,
+          totalSpend: monthSpend,
+          totalTransactions: filteredTransactions.length,
+        });
+      }
+    }
+  }, [
+    activeSelectedMonth,
+    monthSpend,
+    filteredTransactions.length,
+    availableMonths,
+    onMonthChange,
+  ]);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -37,7 +146,7 @@ const TransactionsHistory = ({
           withCredentials: true,
         },
       );
-      setTransactions(data || []);
+      setTransactions([...(data || [])]);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch transactions.");
     } finally {
@@ -132,12 +241,36 @@ const TransactionsHistory = ({
   return (
     <div className="mt-6 bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="p-5 border-b border-gray-100 flex items-center gap-2">
+      <div className="p-5 border-b border-gray-100 flex flex-wrap items-center gap-2">
         <div className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
         <h2 className="text-lg font-bold text-gray-800">Transactions</h2>
-        <span className="ml-auto text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-full">
-          {transactions.length}{" "}
-          {transactions.length === 1 ? "entry" : "entries"}
+
+        {/* Month Filter */}
+        {availableMonths.length > 0 && (
+          <div className="relative ml-auto flex items-center gap-2">
+            <HiOutlineCalendar className="w-4 h-4 text-gray-400" />
+            <select
+              value={activeSelectedMonth}
+              onChange={(e) => handleSelectMonth(e.target.value)}
+              className="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-xl px-3 py-1.5 pr-7 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 transition-all duration-200 cursor-pointer hover:bg-gray-100"
+            >
+              {availableMonths.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
+              <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        <span className={`text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-full ${availableMonths.length === 0 ? 'ml-auto' : ''}`}>
+          {filteredTransactions.length}{" "}
+          {filteredTransactions.length === 1 ? "entry" : "entries"}
         </span>
       </div>
 
@@ -157,7 +290,13 @@ const TransactionsHistory = ({
 
       {/* Transaction List */}
       <ul className="divide-y divide-gray-100">
-        {transactions.map((tx, idx) => (
+        {filteredTransactions.length === 0 && (
+          <li className="p-8 text-center">
+            <HiOutlineCalendar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500 font-medium text-sm">No transactions for this month.</p>
+          </li>
+        )}
+        {filteredTransactions.map((tx, idx) => (
           <li key={tx._id || idx} className="group">
             {/* Desktop View */}
             <div

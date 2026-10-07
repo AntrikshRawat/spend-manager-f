@@ -7,6 +7,25 @@ const useAccountStore = create(
     (set) => ({
       createdAccounts: null,
       joinedAccounts: null,
+      monthlyLimits: {}, // format: { [accountId]: { [monthName]: limit, [monthKey]: limit } }
+
+      setMonthlyLimit: (accountId, monthName, limit, monthKey) => {
+        set((state) => ({
+          monthlyLimits: {
+            ...state.monthlyLimits,
+            [accountId]: {
+              ...(state.monthlyLimits?.[accountId] || {}),
+              [monthName]: Number(limit),
+              ...(monthKey ? { [monthKey]: Number(limit) } : {}),
+            },
+          },
+        }));
+      },
+
+      getMonthlyLimit: (accountId, monthNameOrKey) => {
+        const state = useAccountStore.getState();
+        return state.monthlyLimits?.[accountId]?.[monthNameOrKey] ?? null;
+      },
 
       fetchAndUpdateAccounts: async () => {
         try {

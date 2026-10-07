@@ -7,6 +7,7 @@ import {
   HiOutlineCurrencyRupee,
   HiOutlineUsers,
   HiOutlineDocumentText,
+  HiOutlineShieldCheck,
 } from "react-icons/hi";
 import { HiBellAlert } from "react-icons/hi2";
 import { Link } from "react-router-dom";
@@ -17,14 +18,17 @@ import TransactionsHistory from "../components/TransactionsHistory";
 import { useNavigate } from "react-router-dom";
 import AccountPaidSpend from "../components/AccountPaidSpend";
 import useUserStore from "../store/useUserStore";
+import useAccountStore from "../store/useAccountStore";
 import { toast } from "react-toastify";
 import ReportViewer from "../components/ReportViewer";
+import SetMonthlyLimitPopup from "../components/SetMonthlyLimitPopup";
 
 const AccountDetails = () => {
   const [account, setAccount] = useState({});
   const [members, setMembers] = useState([]);
   let { acId } = useParams();
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
+  const [isSetLimitOpen, setIsSetLimitOpen] = useState(false);
   const paymentEvent = useMemo(() => {
     return new CustomEvent("paymentUpdate");
   }, []);
@@ -32,6 +36,7 @@ const AccountDetails = () => {
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const user = useUserStore((u) => u.user);
+  const monthlyLimits = useAccountStore((s) => s.monthlyLimits);
   const [isAISummaryLoading, setIsAISummaryLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const [showSummaryPopup, setShowSummaryPopup] = useState(false);
@@ -39,6 +44,74 @@ const AccountDetails = () => {
   const [paidSpendLoading, setPaidSpendLoading] = useState(true);
   const [reminderTimeout, setReminderTimeout] = useState(0);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  const [selectedMonthData, setSelectedMonthData] = useState(() => {
+    const now = new Date();
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    return {
+      monthKey: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+        2,
+        "0",
+      )}`,
+      monthName: `${monthNames[now.getMonth()]} ${now.getFullYear()}`,
+      monthLabel: "",
+      totalSpend: null,
+      totalTransactions: null,
+    };
+  });
+
+  const handleMonthChange = useCallback((stats) => {
+    setSelectedMonthData(stats);
+  }, []);
+
+  const currentMonthlyLimit = useMemo(() => {
+    if (!account?._id) return 10000;
+    const accountLimits = monthlyLimits?.[account._id];
+    if (accountLimits) {
+      if (
+        selectedMonthData.monthName &&
+        accountLimits[selectedMonthData.monthName] !== undefined
+      ) {
+        return accountLimits[selectedMonthData.monthName];
+      }
+      if (
+        selectedMonthData.monthKey &&
+        accountLimits[selectedMonthData.monthKey] !== undefined
+      ) {
+        return accountLimits[selectedMonthData.monthKey];
+      }
+      if (
+        selectedMonthData.monthLabel &&
+        accountLimits[selectedMonthData.monthLabel] !== undefined
+      ) {
+        return accountLimits[selectedMonthData.monthLabel];
+      }
+    }
+    return account.monthlyLimit || 10000;
+  }, [account?._id, account?.monthlyLimit, monthlyLimits, selectedMonthData]);
+
+  const displayedSpend =
+    selectedMonthData.totalSpend !== null
+      ? selectedMonthData.totalSpend
+      : account.totalSpend || 0;
+
+  const displayedTransactions =
+    selectedMonthData.totalTransactions !== null
+      ? selectedMonthData.totalTransactions
+      : account.totalTransaction || 0;
 
   const fetchMembersName = useCallback(
     async (userIds) => {
@@ -160,7 +233,7 @@ const AccountDetails = () => {
   };
 
   const handleRemindGroup = async () => {
-    if(reminderTimeout !== 0) {
+    if (reminderTimeout !== 0) {
       toast.info("Reminder is Under Cooldown.");
       return;
     }
@@ -276,53 +349,130 @@ const AccountDetails = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1">
+          <div
+            className={`grid grid-cols-1 gap-4 ${
+              account.accountType === "personal"
+                ? "md:grid-cols-4"
+                : "md:grid-cols-3"
+            }`}
+          >
+            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1 h-full">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-green-400 to-emerald-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
-              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5 h-full flex flex-col">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-xl bg-green-50">
                     <HiOutlineCurrencyRupee className="w-6 h-6 text-green-500" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Spend
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Total Spend
+                    </p>
+                    <p className="text-xs text-green-600 font-semibold">
+                      {selectedMonthData.monthName}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex-1 flex items-end">
+                  <p className="text-3xl font-bold text-gray-800">
+                    ₹
+                    {!isFetching ? displayedSpend.toLocaleString("en-IN") : "-"}
                   </p>
                 </div>
-                <p className="text-3xl font-bold text-gray-800">
-                  ₹{!isFetching ? account.totalSpend : "-"}
-                </p>
               </div>
             </div>
-
-            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1 h-full">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
-              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5 h-full flex flex-col">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-xl bg-blue-50">
                     <HiOutlineUsers className="w-6 h-6 text-blue-500" />
                   </div>
                   <p className="text-sm font-medium text-gray-500">Members</p>
                 </div>
-                <p className="text-3xl font-bold text-gray-800">
-                  {!isFetching ? account.accountMembers?.length : "-"}
-                </p>
+                <div className="flex-1 flex items-end">
+                  <p className="text-3xl font-bold text-gray-800">
+                    {!isFetching ? account.accountMembers?.length : "-"}
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1">
+            {account.accountType === "personal" && (
+              <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1 h-full">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-orange-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
+                <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5 h-full flex flex-col">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-xl bg-amber-50">
+                      <HiOutlineShieldCheck className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">
+                        Monthly Limit
+                      </p>
+                      <p className="text-xs text-amber-600 font-semibold">
+                        {selectedMonthData.monthName}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-end">
+                    <p className="text-3xl font-bold text-gray-800">
+                      ₹
+                      {!isFetching
+                        ? currentMonthlyLimit.toLocaleString("en-IN")
+                        : "-"}
+                    </p>
+                    {!isFetching && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between text-xs font-medium mb-1.5">
+                          <span className="text-gray-500">Used</span>
+                          <span className="text-sm font-bold text-gray-600">
+                            {Math.min(
+                                (displayedSpend / currentMonthlyLimit) * 100,
+                                100,
+                              )}%
+                          </span>
+                        </div>
+                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              (displayedSpend / currentMonthlyLimit) * 100 > 80
+                                ? "bg-gradient-to-r from-red-400 to-red-500"
+                                : "bg-gradient-to-r from-amber-400 to-orange-400"
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                (displayedSpend / currentMonthlyLimit) * 100,
+                                100,
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="group relative rounded-2xl transition-all duration-300 hover:-translate-y-1 h-full">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-2xl blur opacity-0 group-hover:opacity-40 transition-all duration-500"></div>
-              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg p-5 h-full flex flex-col">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-xl bg-purple-50">
                     <HiOutlineDocumentText className="w-6 h-6 text-purple-500" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Transactions
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Total Transactions
+                    </p>
+                    <p className="text-xs text-purple-600 font-semibold">
+                      {selectedMonthData.monthName}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex-1 flex items-end">
+                  <p className="text-3xl font-bold text-gray-800">
+                    {!isFetching ? displayedTransactions : "-"}
                   </p>
                 </div>
-                <p className="text-3xl font-bold text-gray-800">
-                  {!isFetching ? account.totalTransaction : "-"}
-                </p>
               </div>
             </div>
           </div>
@@ -386,19 +536,32 @@ const AccountDetails = () => {
               <span>AI Summarizer</span>
             </button>
 
-            {/* Reminder Button */}
-            <button
-              onClick={handleRemindGroup}
-              disabled={
-                !account ||
-                account?.totalTransaction == 0 ||
-                reminderTimeout !== 0
-              }
-              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-yellow-50 text-yellow-600 border border-yellow-200 hover:bg-yellow-100 hover:border-yellow-300 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <HiBellAlert className="w-5 h-5" />
-              <span>{reminderTimeout==0?"Send Reminder":"Under Cooldown..."}</span>
-            </button>
+            {/* Set Monthly Limit for Personal Accounts OR Send Reminder for Shared Accounts */}
+            {account.accountType === "personal" ? (
+              <button
+                onClick={() => setIsSetLimitOpen(true)}
+                disabled={isFetching}
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <HiOutlineShieldCheck className="w-5 h-5" />
+                <span>Set Monthly Limit</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleRemindGroup}
+                disabled={
+                  !account ||
+                  account?.totalTransaction == 0 ||
+                  reminderTimeout !== 0
+                }
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-yellow-50 text-yellow-600 border border-yellow-200 hover:bg-yellow-100 hover:border-yellow-300 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <HiBellAlert className="w-5 h-5" />
+                <span>
+                  {reminderTimeout == 0 ? "Send Reminder" : "Under Cooldown..."}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -425,6 +588,7 @@ const AccountDetails = () => {
               accountType={account.accountType}
               accountMembers={members}
               paymentEvent={paymentEvent}
+              onMonthChange={handleMonthChange}
             />
           </div>
         </div>
@@ -551,6 +715,14 @@ const AccountDetails = () => {
           }
         }}
         accountType={account.accountType}
+      />
+
+      <SetMonthlyLimitPopup
+        isOpen={isSetLimitOpen}
+        onClose={() => setIsSetLimitOpen(false)}
+        accountId={account?._id}
+        initialLimit={currentMonthlyLimit}
+        defaultMonthKey={selectedMonthData.monthKey}
       />
     </div>
   );
