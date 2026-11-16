@@ -81,9 +81,6 @@ const AddTransactionPopup = ({
               : [{ member: user?.userName, amount: Number(formData.amount) }],
         },
         {
-          params: {
-            accountId,
-          },
           headers: {
             "Content-Type": "application/json",
           },
