@@ -203,7 +203,7 @@ const AccountDetails = () => {
   }, [fetchAccountDetails]);
 
   useEffect(() => {
-    if (account?._id && account.accountType === "shared") {
+    if (account?._id && account.accountType === "shared" && members.length > 0) {
       fetchUserPaidSpend(account._id, members, selectedMonthData.monthKey);
     }
   }, [account?._id, account?.accountType, members, selectedMonthData.monthKey, fetchUserPaidSpend]);

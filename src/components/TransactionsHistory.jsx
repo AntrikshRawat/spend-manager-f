@@ -340,22 +340,32 @@ const TransactionsHistory = ({
                 <div>
                   {tx.memberExpenses && tx.memberExpenses.length > 0 ? (
                     <div className="space-y-1">
-                      {tx.memberExpenses.map((expense, expenseIdx) => (
-                        <div
-                          key={expenseIdx}
-                          className="flex justify-between items-center bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg text-xs"
-                        >
-                          <span className="text-blue-700 font-medium truncate mr-2">
-                            {accountType === "shared" &&
-                            accountMembers[expenseIdx]
-                              ? accountMembers[expenseIdx]
-                              : `M${expenseIdx + 1}`}
-                          </span>
-                          <span className="text-blue-900 font-bold whitespace-nowrap">
-                            ₹{expense}
-                          </span>
-                        </div>
-                      ))}
+                      {tx.memberExpenses.map((expense, expenseIdx) => {
+                        const memberName =
+                          typeof expense === "object" && expense !== null && expense.member
+                            ? expense.member
+                            : accountType === "shared" && accountMembers[expenseIdx]
+                            ? accountMembers[expenseIdx]
+                            : `M${expenseIdx + 1}`;
+                        const expAmount =
+                          typeof expense === "object" && expense !== null
+                            ? expense.amount
+                            : expense;
+
+                        return (
+                          <div
+                            key={expenseIdx}
+                            className="flex justify-between items-center bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg text-xs"
+                          >
+                            <span className="text-blue-700 font-medium truncate mr-2">
+                              {memberName}
+                            </span>
+                            <span className="text-blue-900 font-bold whitespace-nowrap">
+                              ₹{expAmount}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <span className="text-gray-400 text-xs italic">
@@ -425,22 +435,32 @@ const TransactionsHistory = ({
                     tx.memberExpenses &&
                     tx.memberExpenses.length > 0 && (
                       <div className="flex flex-col items-center gap-1.5 mb-2">
-                        {tx.memberExpenses.map((expense, expenseIdx) => (
-                          <div
-                            key={expenseIdx}
-                            className="flex items-center justify-between w-48 bg-blue-50 border border-blue-100 text-xs px-3 py-1.5 rounded-lg"
-                          >
-                            <span className="text-blue-700 font-medium">
-                              {accountType === "shared" &&
-                              accountMembers[expenseIdx]
-                                ? accountMembers[expenseIdx]
-                                : `M${expenseIdx + 1}`}
-                            </span>
-                            <span className="text-blue-900 font-bold">
-                              ₹{expense}
-                            </span>
-                          </div>
-                        ))}
+                        {tx.memberExpenses.map((expense, expenseIdx) => {
+                          const memberName =
+                            typeof expense === "object" && expense !== null && expense.member
+                              ? expense.member
+                              : accountType === "shared" && accountMembers[expenseIdx]
+                              ? accountMembers[expenseIdx]
+                              : `M${expenseIdx + 1}`;
+                          const expAmount =
+                            typeof expense === "object" && expense !== null
+                              ? expense.amount
+                              : expense;
+
+                          return (
+                            <div
+                              key={expenseIdx}
+                              className="flex items-center justify-between w-48 bg-blue-50 border border-blue-100 text-xs px-3 py-1.5 rounded-lg"
+                            >
+                              <span className="text-blue-700 font-medium truncate mr-2">
+                                {memberName}
+                              </span>
+                              <span className="text-blue-900 font-bold whitespace-nowrap">
+                                ₹{expAmount}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
