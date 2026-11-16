@@ -133,14 +133,18 @@ const AccountDetails = () => {
     [backendUrl],
   );
 
-  const fetchUserPaidSpend = useCallback(async (accountId, currentMembers) => {
+  const fetchUserPaidSpend = useCallback(async (accountId, currentMembers, month) => {
     try {
       setPaidSpendLoading(true);
+      const params = { accountId: accountId };
+      if (month) {
+        params.month = month;
+      }
       const { data } = await axiosInstance.post(
         `${backendUrl}/payment/paidspend`,
         { accountMembers: currentMembers },
         {
-          params: { accountId: accountId },
+          params,
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
         },
@@ -149,10 +153,9 @@ const AccountDetails = () => {
     } catch (err) {
       console.error("Failed to fetch user paid-spend data:", err);
     } finally {
-      // This will now reliably fire
       setPaidSpendLoading(false);
     }
-  }, []);
+  }, [backendUrl]);
 
   const fetchAccountDetails = useCallback(async () => {
     try {
@@ -201,9 +204,9 @@ const AccountDetails = () => {
 
   useEffect(() => {
     if (account?._id && account.accountType === "shared") {
-      fetchUserPaidSpend(account._id, members);
+      fetchUserPaidSpend(account._id, members, selectedMonthData.monthKey);
     }
-  }, [account?._id, account?.accountType, members, fetchUserPaidSpend]);
+  }, [account?._id, account?.accountType, members, selectedMonthData.monthKey, fetchUserPaidSpend]);
 
   // Clear Transactions handler
   const handleClearTransactions = async () => {
@@ -425,10 +428,14 @@ const AccountDetails = () => {
                         <div className="flex items-center justify-between text-xs font-medium mb-1.5">
                           <span className="text-gray-500">Used</span>
                           <span className="text-sm font-bold text-gray-600">
-                            {Math.min(
-                                (displayedSpend / currentMonthlyLimit) * 100,
-                                100,
-                              )}%
+                            {currentMonthlyLimit > 0
+                              ? Math.round(
+                                  Math.min(
+                                    (displayedSpend / currentMonthlyLimit) * 100,
+                                    100,
+                                  ),
+                                )
+                              : 0}%
                           </span>
                         </div>
                         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">

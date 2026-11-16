@@ -73,7 +73,12 @@ const AddTransactionPopup = ({
           paidBy: user.userName,
           amount: formData.amount,
           memberExpenses:
-            accountType === "shared" ? memberAmounts : [formData.amount],
+            accountType === "shared"
+              ? accountMembers.map((member, idx) => ({
+                  member: member,
+                  amount: Number(memberAmounts[idx] || 0),
+                }))
+              : [{ member: user?.userName, amount: Number(formData.amount) }],
         },
         {
           params: {

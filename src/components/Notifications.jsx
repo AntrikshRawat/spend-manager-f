@@ -106,7 +106,7 @@ export default function Notifications() {
             <ul className="divide-y divide-gray-100">
               {notifications.map((note, idx) => (
                 <li
-                  key={note.id || idx}
+                  key={note._id || idx}
                   className="group px-5 py-4 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300"
                 >
                   <div className="flex items-start gap-3">

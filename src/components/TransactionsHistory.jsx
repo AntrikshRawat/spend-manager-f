@@ -176,7 +176,6 @@ const TransactionsHistory = ({
         `${import.meta.env.VITE_BACKEND_URL}/payment/delete`,
         {
           params: {
-            amount,
             accountId,
             paymentId: transactionId,
           },

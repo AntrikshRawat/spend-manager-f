@@ -33,9 +33,9 @@ export default function ChangePassword() {
       return;
     }
 
-    if (form.newPassword.length < 6) {
-      setError('New password must be at least 6 characters');
-      toast.error('New password must be at least 6 characters');
+    if (form.newPassword.length < 8) {
+      setError('New password must be at least 8 characters');
+      toast.error('New password must be at least 8 characters');
       return;
     }
 

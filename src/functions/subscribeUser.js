@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosInstance from "./axiosInstance";
 
 
 function urlBase64ToUint8Array(base64String) {
@@ -31,7 +31,7 @@ export async function subscribeUser() {
     });
 
     // send subscription to backend
-    await axios.post(
+    await axiosInstance.post(
       `${import.meta.env.VITE_BACKEND_URL}/userAccount/subscribe`,
       { subscription },
       {
