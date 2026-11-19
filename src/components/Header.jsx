@@ -30,7 +30,7 @@ export default function Header() {
       if (note?.message) {
         toast.info(note.message);
       }
-      if (!note.relatedAccount) {
+      if (!note?.relatedAccount) {
         navigate("/my-accounts");
       }
     };
